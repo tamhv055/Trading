@@ -70,12 +70,20 @@ def updateTradingDoneYet(keyTrade):
 	else:
 		print('Update Trading data')
 
+def getListTrading():
+	try:
+		listTrading = ref_trading.get()
+	except exceptions as e:
+		print(e)
+	else:
+		return listTrading
+
 keytest='-MptfwHC75zqVFip8d7J'
 
 #AddnewTrading(datatestTrading)
-AddnewTrade()
+#AddnewTrade()
 
-updateTradingDoneYet(keytest)
+#updateTradingDoneYet(keytest)
 
 ####Save data
 
