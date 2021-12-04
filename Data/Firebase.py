@@ -51,7 +51,7 @@ def AddnewTrading(data):
 	ref_trading.push(data)   
 
 
-def AddnewTrade():
+def UpdateTradeSuccessFull():
 	trading = ref_trading.get()
 	for key, value in trading.items():
 		if(value["Doneyet"] == True):	
