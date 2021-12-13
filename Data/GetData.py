@@ -1,11 +1,11 @@
 from binance.client import Client,BaseClient
 from binance.exceptions import BinanceAPIException
-import config
+
 import sys
 sys.path.insert(1, "D:\project Binance") 
 sys.path.insert(1, "D:\project Binance\Data")
 import ExportTxt
-
+import config
 
 try:
     client = Client(config.API_KEY,config.API_SECRET)
@@ -36,12 +36,12 @@ def get_balance_USDT_Free():
     return float((balanceUSDT["free"]))
 
 
-def get_fee_buy():
-    feeETHUSDT = client.get_trade_fee(symbol='ETHUSDT')
+def get_fee_buy(_symbol):
+    feeETHUSDT = client.get_trade_fee(symbol=_symbol)
     return float(feeETHUSDT[0]['makerCommission'])
 
-def get_fee_sell():
-    feeETHUSDT = client.get_trade_fee(symbol='ETHUSDT')
+def get_fee_sell(_symbol):
+    feeETHUSDT = client.get_trade_fee(symbol=_symbol)
     return float(feeETHUSDT[0]['takerCommission'])
 
 
@@ -74,7 +74,7 @@ def get_high_price(_symbol,KlineTime,count):
     for x in candles[(0-count):]:
         list_high_price.append(float(x[2]))
 
-    return float(list_high_price)
+    return list_high_price
 
 def get_low_price(_symbol,KlineTime,count):
     list_low_price=[]
@@ -82,7 +82,7 @@ def get_low_price(_symbol,KlineTime,count):
     for x in candles[(0-count):]:
         list_low_price.append(float(x[3]))
 
-    return float(list_low_price)
+    return list_low_price
 
 def Calculator_Average_Listprice(list_price:list):
     len_list  = len(list_price)
@@ -100,6 +100,14 @@ def CalCulator_safepoint(_symbol,KlineTime,count):
     
     return float((Low_Average+High_Average)/2)
 
+def Calculator_Stepjump(_symbol,KlineTime,count):
+    list_low = get_low_price(_symbol,KlineTime,count)
+
+    list_high = get_high_price(_symbol,KlineTime,count)
+
+    return float((sum(list_high)-sum(list_low))/count)
+
+print(Calculator_Stepjump('ETHUSDT',Client.KLINE_INTERVAL_1MINUTE,20))
 
 """ print(recent_price_ETH())
 print(average_price_5mins_ETH())

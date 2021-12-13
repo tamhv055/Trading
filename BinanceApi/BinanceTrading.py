@@ -13,7 +13,7 @@ else:
     print("connect success")
 
 
-def sellBinance(_symbol,_quantity,_price):
+def sellLimitBinance(_symbol,_quantity,_price):
     try:
         order = client.order_limit_sell(symbol=_symbol,quantity=_quantity,price=_price)
         #print(order)
@@ -23,9 +23,29 @@ def sellBinance(_symbol,_quantity,_price):
         print("order sell success")
 
 
-def buyBinance(_symbol,_quantity, _price):
+def buyLimitBinance(_symbol,_quantity, _price):
     try:
         orderbuy= client.order_limit_buy(symbol=_symbol,quantity=_quantity,price=_price,)
+        print(orderbuy)
+    except BinanceAPIException as e:
+        print(e)
+    else:
+        print('order buy success')
+
+
+def sellMarketBinance(_symbol,_quantity):
+    try:
+        order = client.order_market_sell(symbol=_symbol,quantity=_quantity)
+        #print(order)
+    except BinanceOrderException as e:
+        print(e)
+    else:
+        print("order sell success")
+
+
+def buyMarketBinance(_symbol,_quantity):
+    try:
+        orderbuy= client.order_market_buy(symbol=_symbol,quantity=_quantity)
         print(orderbuy)
     except BinanceAPIException as e:
         print(e)

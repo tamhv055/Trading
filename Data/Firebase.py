@@ -10,9 +10,6 @@ import time
 
 
 
-
-
-
 """ cred = credentials.Certificate("D:\project Binance\Data\Firebasetradedata.json")
 firebase_admin.initialize_app(cred,
 {'databaseURL':'https://tradedata-2734a-default-rtdb.asia-southeast1.firebasedatabase.app/'}
@@ -45,30 +42,75 @@ datatestTrade = {
 	}
 
 ref_trading = db.reference('/Trading')
+ref_tradingSellBuy = db.reference('/Trading/SellBuy')
+ref_tradingBuySell = db.reference('/Trading/BuySell')
+
+
 ref_tradeyet= db.reference('/TradeDone')
+ref_tradeyetSellBuy= db.reference('/TradeDone/SellBuy')
+ref_tradeyetBuySell= db.reference('/TradeDone/BuySell')
+
 
 def AddnewTrading(data):
+	# thêm log và bắt lỗi except
 	ref_trading.push(data)   
 
 
-def UpdateTradeSuccessFull():
-	trading = ref_trading.get()
-	for key, value in trading.items():
-		if(value["Doneyet"] == True):	
-			# chuyển success trade sang tradedone
-			db.reference('/TradeDone').push(value)
-			# delete trade done
-			db.reference('/Trading').child(key).set({})
+def AddnewTradingSellBuy(data):
+	# thêm log và bắt lỗi except
+	ref_tradingSellBuy.push(data)
 
-def updateTradingDoneYet(keyTrade):
+
+def AddnewTradingBuySell(data):
+	# thêm log và bắt lỗi except
+	ref_tradingBuySell.push(data)
+
+
+def UpdateTradeSellBuySuccessFull():
+	trading = ref_tradingSellBuy.get()
+
+	for key, value in trading.items():
+		if(value["Doneyet"] == True):
+			# chuyển success trade sang tradedone
+			db.reference('/TradeDone/SellBuy').push(value)
+			# delete trade done
+			db.reference('/Trading/SellBuy').child(key).set({})
+
+
+def UpdateTradeBuySellSuccessFull():
+	trading = ref_tradingBuySell.get()
+
+	for key, value in trading.items():
+		if(value["Doneyet"] == True):
+			# chuyển success trade sang tradedone
+			db.reference('/TradeDone/BuySell').push(value)
+			# delete trade done
+			db.reference('/Trading/BuySell').child(key).set({})
+
+
+def updateTradingSellBuyDoneYet_OnlistTrading(keyTrade,price):
 	try:
-		for key, value in db.reference('/Trading').get().items():
+		for key, value in db.reference('/Trading/SellBuy').get().items():
 			if(key==keyTrade):
-				db.reference('/Trading').child(keyTrade).update({'Doneyet' : True})
+				db.reference('/Trading/SellBuy').child(keyTrade).update({'Doneyet' : True})
+				db.reference('/Trading/SellBuy').child(keyTrade).update({'BuyValue' : price})
 	except exceptions as e:
 		print(e)
 	else:
-		print('Update Trading data')
+		print('Update Trading SellBuy data')
+
+
+def updateTradingBuySellDoneYet_OnlistTrading(keyTrade,price):
+	try:
+		for key, value in db.reference('/Trading/BuySell').get().items():
+			if(key==keyTrade):
+				db.reference('/Trading/BuySell').child(keyTrade).update({'Doneyet' : True})
+				db.reference('/Trading/SellBuy').child(keyTrade).update({'SellValue' : price})
+	except exceptions as e:
+		print(e)
+	else:
+		print('Update Trading BuySell data')
+
 
 def getListTrading():
 	try:
@@ -77,6 +119,27 @@ def getListTrading():
 		print(e)
 	else:
 		return listTrading
+
+
+def getListSellBuyTrading():
+	try:
+		listTrading = ref_tradingSellBuy.get()
+	except exceptions as e:
+		print(e)
+	else:
+		return listTrading
+
+
+def getListBuySellTrading():
+	try:
+		listTrading = ref_tradingBuySell.get()
+	except exceptions as e:
+		print(e)
+	else:
+		return listTrading
+
+
+
 
 keytest='-MptfwHC75zqVFip8d7J'
 
