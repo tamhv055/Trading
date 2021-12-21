@@ -7,6 +7,7 @@ sys.path.insert(1, "D:\project Binance\Data")
 import ExportTxt
 import config
 
+
 try:
     client = Client(config.API_KEY,config.API_SECRET)
 except BinanceAPIException as e:
@@ -15,11 +16,12 @@ else:
     print("connect success")
 
 
+
 def recent_price_ETH(_symbol):
     price = client.get_recent_trades(symbol=_symbol,limit=1)
     return float(price[0]["price"])
 
-def average_price_5mins_ETH(_symbol):
+def average_price_5mins(_symbol):
     avg_price = client.get_avg_price(symbol=_symbol)
     return float(avg_price['price'])
 
@@ -36,6 +38,7 @@ def get_balance_USDT_Free():
     return float((balanceUSDT["free"]))
 
 
+
 def get_fee_buy(_symbol):
     feeETHUSDT = client.get_trade_fee(symbol=_symbol)
     return float(feeETHUSDT[0]['makerCommission'])
@@ -43,7 +46,6 @@ def get_fee_buy(_symbol):
 def get_fee_sell(_symbol):
     feeETHUSDT = client.get_trade_fee(symbol=_symbol)
     return float(feeETHUSDT[0]['takerCommission'])
-
 
 def get_candles(_symbol,KlineTime):
     candles = client.get_klines(symbol=_symbol, interval=KlineTime)
@@ -101,13 +103,20 @@ def CalCulator_safepoint(_symbol,KlineTime,count):
     return float((Low_Average+High_Average)/2)
 
 def Calculator_Stepjump(_symbol,KlineTime,count):
+
     list_low = get_low_price(_symbol,KlineTime,count)
 
     list_high = get_high_price(_symbol,KlineTime,count)
 
     return float((sum(list_high)-sum(list_low))/count)
 
+
+
+
+
+
 print(Calculator_Stepjump('ETHUSDT',Client.KLINE_INTERVAL_1MINUTE,20))
+
 
 """ print(recent_price_ETH())
 print(average_price_5mins_ETH())

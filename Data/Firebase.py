@@ -138,8 +138,35 @@ def getListBuySellTrading():
 	else:
 		return listTrading
 
+def FindBuyMaxInListBuySell():
+	listBuySell = getListBuySellTrading()
+	#print(listBuySell)
+
+	listkey = [x for x in listBuySell]
+	listid = [listBuySell[x]['BuyValue'] for x in listBuySell]
+	#print(listid)
+	maxBuyValue = max(listBuySell[x]['BuyValue'] for x in listBuySell)
+	#print(maxBuyValue)
+	#print(listid.index(maxBuyValue))
+	key = listkey[listid.index(maxBuyValue)]
+	#print(listkey[listid.index(maxBuyValue)])
+	#print(listBuySell[listkey[listid.index(maxBuyValue)]])
+	return key,maxBuyValue
 
 
+def FindSellMinInListBuySell():
+	listSellBuy = getListSellBuyTrading()
+	#print(listSellBuy)
+	listkey = [x for x in listSellBuy]
+	listid = [listSellBuy[x]['SellValue'] for x in listSellBuy]
+
+	minSellValue = min(listSellBuy[x]['SellValue'] for x in listSellBuy)
+	key = listkey[listid.index(minSellValue)]
+	return key,minSellValue
+
+
+print(FindBuyMaxInListBuySell())
+print(FindSellMinInListBuySell())
 
 keytest='-MptfwHC75zqVFip8d7J'
 
