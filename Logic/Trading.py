@@ -50,7 +50,7 @@ listTradingBuySell = Firebase.getListBuySellTrading()
 listTradingSellBuy = Firebase.getListSellBuyTrading() """
 
 ##### trading with no value in list traing 
-def buy(price):
+def buy(price,_stepjump):
     #tao lenh mua vô binance, check USDT còn không
     #BinanceTrading.buyBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
 
@@ -61,12 +61,12 @@ def buy(price):
 	        "Time" : timestr ,
             "BuyValue" : price,
             "Quantity" : TRADE_QUANTITY,
-            "SellFuture" : price*(1+feeSellPercent+feeBuyPercent+0.002) ,
+            "SellFuture" : (price*(1+feeSellPercent+feeBuyPercent+0.001)+_stepjump) ,
 	        "Doneyet": False
 	}
     Firebase.AddnewTradingBuySell(dataBuy)
 
-def sell(price):
+def sell(price,_stepjump):
     #tao lenh market bán ra binance, check ETH còn không
     #BinanceTrading.sellBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
     #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
@@ -76,7 +76,7 @@ def sell(price):
 	            "Time" : timestr   ,
                 "SellValue" : price,
                 "Quantity" : TRADE_QUANTITY,
-                "BuyFuture" : price*(1-feeSellPercent-feeBuyPercent-0.002) ,
+                "BuyFuture" : (price*(1-feeSellPercent-feeBuyPercent-0.001)- _stepjump) ,
 	            "Doneyet": False
 	            }
     Firebase.AddnewTradingSellBuy(dataSell)
@@ -85,6 +85,7 @@ def tradingwithlistNoValue():
 
     #timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
     safepoint= GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,250) 
+    StepJump = GetData.Calculator_Stepjump(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,20)
     #price5min = float(GetData.average_price_5mins_ETH(TRADE_SYMBOL))
     
     realtime_priceETH = float(GetData.recent_price_ETH(TRADE_SYMBOL))
@@ -97,7 +98,7 @@ def tradingwithlistNoValue():
     if realtime_priceETH > safepoint:
 
         if balanceUSDT> float(TRADE_QUANTITY*realtime_priceETH) :
-            buy(realtime_priceETH)
+            buy(realtime_priceETH,StepJump)
         else:
              print("No balance Coin and USDT")
         """ else:
@@ -106,7 +107,7 @@ def tradingwithlistNoValue():
         
     else : #realtime_priceETH <= price5min
         if balanceCoin > TRADE_QUANTITY:
-            sell(realtime_priceETH)
+            sell(realtime_priceETH,StepJump)
         else: 
                 print("No balance Coin and USDT")
         """ else:
@@ -135,38 +136,47 @@ def SellBuyCoupleDone(_price,keytrade):
     Firebase.updateTradingSellBuyDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
     Firebase.UpdateTradeSellBuySuccessFull()
 
-
 def buynewSlow(price,stepjump):
     while True:
+        if price*(feeBuyPercent+feeSellPercent) < stepjump:
+            stepjump = price*(feeBuyPercent+feeSellPercent)
+
         listBuySell= Firebase.getListBuySellTrading()
         if listBuySell is None:
-            buy(price)
-            break
+            buy(price,stepjump)
+            return
             
         else : #listBuySell is not none
             # giá tăng nhẹ ,mua từ từ 
             listvalue = sorted([listBuySell[x]['BuyValue'] for x in listBuySell])
             lastvalue = listvalue[len(listvalue)-1]
+            firstvalue = listvalue[0]
 
             # check giá trị cuối cùng của list, nếu phù hợp thì mua
+            if firstvalue > price and price <= (firstvalue-stepjump) :
+                buy(price,stepjump)
+                return 
+
             if lastvalue < price and price >= (lastvalue+stepjump):
-                buy(price)
-                break
+                buy(price,stepjump)
+                return
 
             elif lastvalue > price:
                
                 for i in range(len(listvalue)-1):
                     if listvalue[i]< price and price < listvalue[i+1] and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*1.9):
-                        buy(price)
-                        break 
-                    else:
-                        break
-            else:
-                break
-
-        break
+                        buy(price,stepjump)
+                        return 
+                    else: 
+                        return
             
-
+            else: 
+                return
+            
+            
+        
+        return
+            
 def BuySellDone(price,stepjump):
     while True:
         listBuySell= Firebase.getListBuySellTrading()
@@ -189,38 +199,52 @@ def BuySellDone(price,stepjump):
                 if value <= price:
                     ## lấy key của giá trị value
                     key = listkey[listid.index(value)]
+
+                    ### hàm mua bán bất đồng bộ ở đây
                     BuySellCoupleDone(_price=price,keytrade=key)
             
         break
-    
                             
 def sellnewSlow(price,stepjump):
     while True:
+
+        if price*(feeBuyPercent+feeSellPercent) < stepjump:
+            stepjump = price*(feeBuyPercent+feeSellPercent)
+
         listSellBuy= Firebase.getListSellBuyTrading()
         if listSellBuy is None:
-            sell(price)
-            break
+            sell(price,stepjump)
+            return
             
         else : #listSellBuy is not none
             # giá giảm nhẹ, bán từ từ 
             listvalue =sorted([listSellBuy[x]['SellValue'] for x in listSellBuy],reverse=True)
             lastvalue =listvalue[len(listvalue)-1]
+            firstvalue = listvalue[0]
 
             # check giá trị cuối cùng của list, nếu phù hợp thì bán
+            if firstvalue < price and price >= (firstvalue+stepjump) :
+                sell(price,stepjump)
+                return 
+
             if lastvalue > price and price <= (lastvalue-stepjump):
-                sell(price)
-                break
+                sell(price,stepjump)
+                return
 
             elif lastvalue < price:
                 for i in range(len(listvalue)-1):
                     if listvalue[i]> price and price > listvalue[i+1] and  ( listvalue[i]-listvalue[i+1] ) >= (stepjump*1.9):
-                        sell(price)
-                        break 
+                        sell(price,stepjump)
+                        return
                     else:
-                        break
+                        return
+            
             else:
-                break    
-        break
+                return
+
+            
+               
+        return
 
 def SellBuyDone(price,stepjump):
     while True:
@@ -246,6 +270,8 @@ def SellBuyDone(price,stepjump):
                     key = listkey[listid.index(value)]
                     SellBuyCoupleDone(_price=price,keytrade=key)
 
+                    
+
         break
 
 
@@ -268,7 +294,6 @@ def tradingwithlistHasValue():
         print("SellBuyDone")
         SellBuyDone(realtime_priceETH,StepJump)
     
-
 
 
 ###########################################################
