@@ -105,7 +105,7 @@ def updateTradingBuySellDoneYet_OnlistTrading(keyTrade,price):
 		for key, value in db.reference('/Trading/BuySell').get().items():
 			if(key==keyTrade):
 				db.reference('/Trading/BuySell').child(keyTrade).update({'Doneyet' : True})
-				db.reference('/Trading/SellBuy').child(keyTrade).update({'SellValue' : price})
+				db.reference('/Trading/BuySell').child(keyTrade).update({'SellValue' : price})
 	except exceptions as e:
 		print(e)
 	else:
@@ -153,7 +153,6 @@ def FindBuyMaxInListBuySell():
 	#print(listBuySell[listkey[listid.index(maxBuyValue)]])
 	return key,maxBuyValue
 
-
 def FindSellMinInListBuySell():
 	listSellBuy = getListSellBuyTrading()
 	#print(listSellBuy)
@@ -165,8 +164,7 @@ def FindSellMinInListBuySell():
 	return key,minSellValue
 
 
-print(FindBuyMaxInListBuySell())
-print(FindSellMinInListBuySell())
+
 
 keytest='-MptfwHC75zqVFip8d7J'
 
