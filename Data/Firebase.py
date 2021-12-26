@@ -27,7 +27,7 @@ else:
 
 timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
 
-datatestTrading = {
+""" datatestTrading = {
 	"Time" : timestr   ,
     "BuyValue" : 3500,
     "SellValue" : 4000,  
@@ -39,7 +39,7 @@ datatestTrade = {
     "BuyValue" : 3100,
     "SellValue" : 4000,  
 	"Doneyet": True
-	}
+	} """
 
 ref_trading = db.reference('/Trading')
 ref_tradingSellBuy = db.reference('/Trading/SellBuy')

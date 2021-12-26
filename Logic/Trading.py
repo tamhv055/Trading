@@ -17,6 +17,7 @@ import config
 
 
 TRADE_SYMBOL = config.TRADE_SYMBOL
+
 TRADE_QUANTITY = config.TRADE_QUANTITY
 
 StepJump = float()
@@ -25,6 +26,8 @@ nextPoint = float()
 
 buypoint = float()
 sellpoint = float()
+
+updateData = True
 
 listbuy = {}
 listsell = {}
@@ -65,6 +68,8 @@ def buy(price,_stepjump):
 	        "Doneyet": False
 	}
     Firebase.AddnewTradingBuySell(dataBuy)
+    global updateData
+    updateData = True
 
 def sell(price,_stepjump):
     #tao lenh market bán ra binance, check ETH còn không
@@ -80,6 +85,8 @@ def sell(price,_stepjump):
 	            "Doneyet": False
 	            }
     Firebase.AddnewTradingSellBuy(dataSell)
+    global updateData
+    updateData = True
 
 def tradingwithlistNoValue():
 
@@ -128,6 +135,8 @@ def BuySellCoupleDone(_price,keytrade):
     #Thêm dữ liệu lên firebase
     Firebase.updateTradingBuySellDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
     Firebase.UpdateTradeBuySellSuccessFull()
+    global updateData
+    updateData = True
 
 def SellBuyCoupleDone(_price,keytrade):
     #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
@@ -135,13 +144,15 @@ def SellBuyCoupleDone(_price,keytrade):
     #Thêm dữ liệu lên firebase
     Firebase.updateTradingSellBuyDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
     Firebase.UpdateTradeSellBuySuccessFull()
+    global updateData
+    updateData = True
 
-def buynewSlow(price,stepjump):
+def buynewSlow(price,stepjump,listBuySell):
     while True:
         if price*(feeBuyPercent+feeSellPercent) < stepjump:
             stepjump = price*(feeBuyPercent+feeSellPercent)
 
-        listBuySell= Firebase.getListBuySellTrading()
+        #listBuySell= Firebase.getListBuySellTrading()
         if listBuySell is None:
             buy(price,stepjump)
             return
@@ -164,7 +175,7 @@ def buynewSlow(price,stepjump):
             elif lastvalue > price:
                
                 for i in range(len(listvalue)-1):
-                    if listvalue[i]< price and price < listvalue[i+1] and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*1.9):
+                    if listvalue[i]< price and price < listvalue[i+1] and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*2):
                         buy(price,stepjump)
                         return 
                     else: 
@@ -177,9 +188,9 @@ def buynewSlow(price,stepjump):
         
         return
             
-def BuySellDone(price,stepjump):
+def BuySellDone(price,stepjump,listBuySell):
     while True:
-        listBuySell= Firebase.getListBuySellTrading()
+        #listBuySell= Firebase.getListBuySellTrading()
         if listBuySell is not None:
             
         #listSellBuy is not none
@@ -205,13 +216,13 @@ def BuySellDone(price,stepjump):
             
         break
                             
-def sellnewSlow(price,stepjump):
+def sellnewSlow(price,stepjump,listSellBuy):
     while True:
 
         if price*(feeBuyPercent+feeSellPercent) < stepjump:
             stepjump = price*(feeBuyPercent+feeSellPercent)
 
-        listSellBuy= Firebase.getListSellBuyTrading()
+        #listSellBuy= Firebase.getListSellBuyTrading()
         if listSellBuy is None:
             sell(price,stepjump)
             return
@@ -233,7 +244,7 @@ def sellnewSlow(price,stepjump):
 
             elif lastvalue < price:
                 for i in range(len(listvalue)-1):
-                    if listvalue[i]> price and price > listvalue[i+1] and  ( listvalue[i]-listvalue[i+1] ) >= (stepjump*1.9):
+                    if listvalue[i]> price and price > listvalue[i+1] and  ( listvalue[i]-listvalue[i+1] ) >= (stepjump*2):
                         sell(price,stepjump)
                         return
                     else:
@@ -246,9 +257,9 @@ def sellnewSlow(price,stepjump):
                
         return
 
-def SellBuyDone(price,stepjump):
+def SellBuyDone(price,stepjump,listSellBuy):
     while True:
-        listSellBuy= Firebase.getListSellBuyTrading()
+        #listSellBuy= Firebase.getListSellBuyTrading()
         if listSellBuy is not None:
             
         #listSellBuy is not none
@@ -276,33 +287,71 @@ def SellBuyDone(price,stepjump):
 
 
 
-def tradingwithlistHasValue():
+def tradingwithlistHasValue(listBuySell,listSellBuy):
     
     realtime_priceETH = GetData.recent_price_ETH(TRADE_SYMBOL)
     StepJump = GetData.Calculator_Stepjump(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,20)
     print(StepJump)
+    
     safepoint = GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,250)
     if realtime_priceETH >= safepoint:
         print("buynewSlow")
-        buynewSlow(realtime_priceETH,StepJump)
-        print("BuySellDone")
-        BuySellDone(realtime_priceETH,StepJump)
+        sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+        #print("BuySellDone")
+        #BuySellDone(realtime_priceETH,StepJump)
+        
 
     elif realtime_priceETH <= safepoint:
         print("sellnewSlow")
-        sellnewSlow(realtime_priceETH,StepJump)
-        print("SellBuyDone")
-        SellBuyDone(realtime_priceETH,StepJump)
-    
+        
+        buynewSlow(realtime_priceETH,StepJump,listBuySell)
+        #print("SellBuyDone")
+        #SellBuyDone(realtime_priceETH,StepJump)
+
+
+    print("BuySellDone")
+    BuySellDone(realtime_priceETH,StepJump,listBuySell)
+    print("SellBuyDone")
+    SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
 
 
 ###########################################################
 
+def TradeAllTime():
+
+    global updateData
+   
+    while True: 
+        if updateData == True :
+            listTrading= Firebase.getListTrading()
+            listBuySell= Firebase.getListBuySellTrading()
+            listSellBuy= Firebase.getListSellBuyTrading()
+            
+            updateData = False
+            
+            print("Run Update listtrading")
+
+        starttime = round(time.time()*1000)
+        print(listTrading)
+        
+        if listTrading is None:
+            print('Len list trading 0')
+            tradingwithlistNoValue()
+            endtime = round(time.time()*1000)
+            print("time a trading work: %s ms" %(endtime-starttime))
+            continue
+            
+        else:
+            
+            tradingwithlistHasValue(listBuySell,listSellBuy)
+            endtime = round(time.time()*1000)
+            print("time a trading work: %s ms" %(endtime-starttime))
+            print('len list trading 0' )
+            continue
 
 
 
-
-def tradingListBuySellSlow():
+""" def tradingListBuySellSlow():
     while True:
         listBuySell= Firebase.getListBuySellTrading()
         if listBuySell is None:
@@ -332,4 +381,4 @@ def tradingListSellBuySlow():
             continue
         else:
             print("error List Buy Sell")
-            continue
+            continue """
