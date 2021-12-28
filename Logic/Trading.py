@@ -1,4 +1,5 @@
 import sys
+from types import prepare_class
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data")  
 sys.path.insert(1, "D:\project Binance\BinanceApi")
@@ -88,6 +89,26 @@ def sell(price,_stepjump):
     global updateData
     updateData = True
 
+def BuySellCoupleDone(_price,keytrade):
+     #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
+    #Thêm dữ liệu lên firebase
+    Firebase.updateTradingBuySellDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
+    Firebase.UpdateTradeBuySellSuccessFull()
+    global updateData
+    updateData = True
+
+def SellBuyCoupleDone(_price,keytrade):
+    #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
+    #Thêm dữ liệu lên firebase
+    Firebase.updateTradingSellBuyDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
+    Firebase.UpdateTradeSellBuySuccessFull()
+    global updateData
+    updateData = True
+
+
+
 def tradingwithlistNoValue():
 
     #timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
@@ -129,23 +150,7 @@ def tradingwithlistNoValue():
 
 
 # Trading with have list trading
-def BuySellCoupleDone(_price,keytrade):
-     #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
-    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-    #Thêm dữ liệu lên firebase
-    Firebase.updateTradingBuySellDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
-    Firebase.UpdateTradeBuySellSuccessFull()
-    global updateData
-    updateData = True
 
-def SellBuyCoupleDone(_price,keytrade):
-    #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
-    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-    #Thêm dữ liệu lên firebase
-    Firebase.updateTradingSellBuyDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
-    Firebase.UpdateTradeSellBuySuccessFull()
-    global updateData
-    updateData = True
 
 def buynewSlow(price,stepjump,listBuySell):
     while True:
@@ -162,25 +167,30 @@ def buynewSlow(price,stepjump,listBuySell):
             listvalue = sorted([listBuySell[x]['BuyValue'] for x in listBuySell])
             lastvalue = listvalue[len(listvalue)-1]
             firstvalue = listvalue[0]
+            print("listbuysell:", listvalue)
 
+            # listvalue 1 3 4 5 6 7 9
             # check giá trị cuối cùng của list, nếu phù hợp thì mua
-            if firstvalue > price and price <= (firstvalue-stepjump) :
+            #Check giá trị đầu tiên để buy
+            if firstvalue > price and (firstvalue-price) >= (0.9*stepjump) :
                 buy(price,stepjump)
                 return 
-
-            if lastvalue < price and price >= (lastvalue+stepjump):
+            # check giá trị cuối cùng
+            elif lastvalue < price and (price-lastvalue) >= (0.9*stepjump):
                 buy(price,stepjump)
                 return
-
-            elif lastvalue > price:
+            # Check giá trị ở giữa
+            elif firstvalue<price<lastvalue and (price-firstvalue)>=stepjump and (lastvalue-price) >= stepjump:
                
-                for i in range(len(listvalue)-1):
-                    if listvalue[i]< price and price < listvalue[i+1] and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*2):
+                for i in range(len(listvalue)):
+                    if listvalue[i]< price < listvalue[i+1] and  (listvalue[i+1]-listvalue[i] ) >= (stepjump*2) and (listvalue[i+1]-price) >= 0.9*stepjump and  (price-listvalue[i]) >= 0.9*stepjump : 
                         buy(price,stepjump)
                         return 
                     else: 
                         return
             
+            # and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*2)
+            # and (listvalue[i+1]-price) >= 0.9*stepjump and (listvalue[i]-price) >= 0.9*stepjump 
             else: 
                 return
             
@@ -231,20 +241,25 @@ def sellnewSlow(price,stepjump,listSellBuy):
             # giá giảm nhẹ, bán từ từ 
             listvalue =sorted([listSellBuy[x]['SellValue'] for x in listSellBuy],reverse=True)
             lastvalue =listvalue[len(listvalue)-1]
+            print("listsellbuy:", listvalue)
             firstvalue = listvalue[0]
 
-            # check giá trị cuối cùng của list, nếu phù hợp thì bán
-            if firstvalue < price and price >= (firstvalue+stepjump) :
+            # listvalue  11 9 5 4 3 2 1
+
+
+             # check giá trị cuối cùng của list, nếu phù hợp thì bán
+             # check vị trí đầu
+            if firstvalue < price and (price-firstvalue) >= (0.9*stepjump) :
                 sell(price,stepjump)
                 return 
-
-            if lastvalue > price and price <= (lastvalue-stepjump):
+            #check vị trí cuối
+            elif lastvalue > price and (lastvalue-price) >= (0.9*stepjump):
                 sell(price,stepjump)
                 return
-
-            elif lastvalue < price:
-                for i in range(len(listvalue)-1):
-                    if listvalue[i]> price and price > listvalue[i+1] and  ( listvalue[i]-listvalue[i+1] ) >= (stepjump*2):
+            #check vị trí giữa
+            elif firstvalue > price > lastvalue and (firstvalue-price)>=(0.9*stepjump) and (price-lastvalue) >= (0.9*stepjump) :
+                for i in range(len(listvalue)):
+                    if listvalue[i]> price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*2) and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump :
                         sell(price,stepjump)
                         return
                     else:
@@ -253,8 +268,24 @@ def sellnewSlow(price,stepjump,listSellBuy):
             else:
                 return
 
-            
-               
+            # and (listvalue[i]-listvalue[i+1]) >= (stepjump*2)
+            # and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump  
+
+            """ for i in range(len(listvalue)):
+                if i == 0:
+                    if price > listvalue[i]: 
+                        if price-listvalue[i] > (0.9*stepjump):
+                            sell(price,stepjump)
+                            return
+                elif i == len(listvalue)-1:
+                    if price < listvalue[len(listvalue)-1]:
+                        if listvalue[len(listvalue)-1] - price > (0.9*stepjump):
+                            sell(price,stepjump)
+                            return
+                else:
+                    if listvalue[i]> price and price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*1.9) and (listvalue[i]-price) >= 0.9*stepjump or (price-listvalue[i+1])>= 0.9*stepjump :
+                        sell(price,stepjump)
+                        return """
         return
 
 def SellBuyDone(price,stepjump,listSellBuy):
@@ -297,14 +328,15 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
     if realtime_priceETH >= safepoint:
         print("buynewSlow")
         sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+        
         #print("BuySellDone")
         #BuySellDone(realtime_priceETH,StepJump)
         
 
     elif realtime_priceETH <= safepoint:
         print("sellnewSlow")
-        
         buynewSlow(realtime_priceETH,StepJump,listBuySell)
+        
         #print("SellBuyDone")
         #SellBuyDone(realtime_priceETH,StepJump)
 
@@ -322,7 +354,9 @@ def TradeAllTime():
     global updateData
    
     while True: 
+        starttime = round(time.time()*1000)
         if updateData == True :
+            #time.sleep(5)
             listTrading= Firebase.getListTrading()
             listBuySell= Firebase.getListBuySellTrading()
             listSellBuy= Firebase.getListSellBuyTrading()
@@ -331,8 +365,8 @@ def TradeAllTime():
             
             print("Run Update listtrading")
 
-        starttime = round(time.time()*1000)
-        print(listTrading)
+        
+        
         
         if listTrading is None:
             print('Len list trading 0')
@@ -342,11 +376,10 @@ def TradeAllTime():
             continue
             
         else:
-            
             tradingwithlistHasValue(listBuySell,listSellBuy)
             endtime = round(time.time()*1000)
             print("time a trading work: %s ms" %(endtime-starttime))
-            print('len list trading 0' )
+            
             continue
 
 

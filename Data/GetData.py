@@ -110,12 +110,44 @@ def Calculator_Stepjump(_symbol,KlineTime,count):
 
     return float((sum(list_high)-sum(list_low))/count)
 
+def Calculator_SpeedJump(_symbol,count):
+    if count > 2:
+        sum= 0
+        list_price_recent = client.get_recent_trades(symbol=_symbol,limit=count)
+        for i in range(len(list_price_recent)-1):
+            sum = sum + (list_price_recent[i+1]-list_price_recent[i])
+
+        SpeedJump = sum/len(list_price_recent)
+    return SpeedJump
 
 
+def check_negative(s):
+    try:
+        f = float(s)
+        if (f < 0):
+            return True
+        # Otherwise return false
+        return False
+    except ValueError:
+        return False
+
+def Count_Pos_And_Negg_List(_symbol,count): # 500
+    
+    if count > 2:
+        Positive = 0
+        Negative = 0
+        list_price_recent = client.get_recent_trades(symbol=_symbol,limit=count)
+        for i in range(len(list_price_recent)-1):
+            if check_negative(list_price_recent[i+1]-list_price_recent[i]) == True:
+                Negative = Negative+1
+            else:
+                Positive = Positive+1
+
+        
+    return Positive,Negative
 
 
-
-print(Calculator_Stepjump('ETHUSDT',Client.KLINE_INTERVAL_1MINUTE,20))
+#print(Count_Pos_And_Negg_List('ETHUSDT',50))
 
 
 """ print(recent_price_ETH())

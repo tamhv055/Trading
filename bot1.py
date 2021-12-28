@@ -19,7 +19,8 @@ import urllib.request
 import socket
 import os
 from LogFile import Writelog
-
+#from pynput import keyboard
+import time
 
 def internet_on():
     try:
@@ -28,6 +29,20 @@ def internet_on():
     except socket.timeout as err: 
         return False
 
+""" break_program = False
+def on_press(key):
+    global break_program
+    print (key)
+    if key == keyboard.Key.end:
+        print ('end pressed')
+        break_program = True
+        return False
+
+with keyboard.Listener(on_press=on_press) as listener:
+    while break_program == False:
+        print ('program running')
+        time.sleep(5)
+    listener.join() """
 
 
 Trading.TradeAllTime()
@@ -36,7 +51,7 @@ Trading.TradeAllTime()
 
 
 
-#timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
+#timestr = time.strftime("%d-%m-%Y----%H-%M-%S")33333333333333333333
 
 """ def TradeAllTime():
     
