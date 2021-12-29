@@ -15,7 +15,8 @@ else:
 
 def sellLimitBinance(_symbol,_quantity,_price):
     try:
-        order = client.order_limit_sell(symbol=_symbol,quantity=_quantity,price=_price)
+        if config.EnableBinanceApi == True:
+            order = client.order_limit_sell(symbol=_symbol,quantity=_quantity,price=_price)
         #print(order)
     except BinanceOrderException as e:
         print(e)
@@ -25,8 +26,9 @@ def sellLimitBinance(_symbol,_quantity,_price):
 
 def buyLimitBinance(_symbol,_quantity, _price):
     try:
-        orderbuy= client.order_limit_buy(symbol=_symbol,quantity=_quantity,price=_price,)
-        print(orderbuy)
+        if config.EnableBinanceApi == True:
+            orderbuy= client.order_limit_buy(symbol=_symbol,quantity=_quantity,price=_price,)
+
     except BinanceAPIException as e:
         print(e)
     else:
@@ -35,7 +37,8 @@ def buyLimitBinance(_symbol,_quantity, _price):
 
 def sellMarketBinance(_symbol,_quantity):
     try:
-        order = client.order_market_sell(symbol=_symbol,quantity=_quantity)
+        if config.EnableBinanceApi == True:
+            order = client.order_market_sell(symbol=_symbol,quantity=_quantity)
         #print(order)
     except BinanceOrderException as e:
         print(e)
@@ -45,8 +48,8 @@ def sellMarketBinance(_symbol,_quantity):
 
 def buyMarketBinance(_symbol,_quantity):
     try:
-        orderbuy= client.order_market_buy(symbol=_symbol,quantity=_quantity)
-        print(orderbuy)
+        if config.EnableBinanceApi == True:
+            orderbuy= client.order_market_buy(symbol=_symbol,quantity=_quantity)
     except BinanceAPIException as e:
         print(e)
     else:

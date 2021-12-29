@@ -9,8 +9,8 @@ print(timestr)
 
 
 def writeDataNow(data):
-    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-    with open('D:\project Binance\Data'+'\\'+timestr+'.txt','w') as f:
+    timestr = time.strftime("%d-%m-%Y")
+    with open('D:\project Binance\Data\DataBackup'+'\\'+timestr+'.txt','w') as f:
         f.write(str(data))
 
 

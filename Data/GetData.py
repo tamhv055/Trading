@@ -131,23 +131,33 @@ def check_negative(s):
     except ValueError:
         return False
 
-def Count_Pos_And_Negg_List(_symbol,count): # 500
-    
+def get_average_price(_symbol,Kline,count):
+    list_high_price = get_high_price(_symbol,Kline,count)
+    list_low_price = get_low_price(_symbol,Kline,count)
+    ziplist = zip(list_high_price,list_low_price)
+    list_average_price = [(x+y)/2 for (x,y) in ziplist]
+
+    return list_average_price
+
+
+
+def Count_Pos_And_Negg_List(_symbol,Kline,count): # 500
     if count > 2:
         Positive = 0
         Negative = 0
-        list_price_recent = client.get_recent_trades(symbol=_symbol,limit=count)
-        for i in range(len(list_price_recent)-1):
-            if check_negative(list_price_recent[i+1]-list_price_recent[i]) == True:
+        list_average_price = get_average_price(_symbol,Kline,count)
+        
+        print(list_average_price)
+        for i in range(len(list_average_price)-1):
+            if check_negative(list_average_price[i+1]-list_average_price[i]) == True:
                 Negative = Negative+1
             else:
                 Positive = Positive+1
 
-        
     return Positive,Negative
 
 
-#print(Count_Pos_And_Negg_List('ETHUSDT',50))
+print(Count_Pos_And_Negg_List('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,101))
 
 
 """ print(recent_price_ETH())
@@ -175,7 +185,7 @@ trades = client.get_aggregate_trades(symbol='ETHUSDT') """
 # ExportTxt.writeDataNow(candles)
 
 """  [
-    1499040000000,      // Open time    0
+    1499040000000,      // Open time    333330
     "0.01634790",       // Open         1
     "0.80000000",       // High         2
     "0.01575800",       // Low          3

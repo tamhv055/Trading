@@ -68,22 +68,23 @@ def AddnewTradingBuySell(data):
 
 def UpdateTradeSellBuySuccessFull():
 	trading = ref_tradingSellBuy.get()
-
+	timestr = time.strftime("%d-%m-%Y")
 	for key, value in trading.items():
 		if(value["Doneyet"] == True):
 			# chuyển success trade sang tradedone
-			db.reference('/TradeDone/SellBuy').push(value)
+			db.reference('/TradeDone/'+timestr+'/SellBuy').push(value)
 			# delete trade done
 			db.reference('/Trading/SellBuy').child(key).set({})
 
 
 def UpdateTradeBuySellSuccessFull():
 	trading = ref_tradingBuySell.get()
+	timestr = time.strftime("%d-%m-%Y")
 
 	for key, value in trading.items():
 		if(value["Doneyet"] == True):
 			# chuyển success trade sang tradedone
-			db.reference('/TradeDone/BuySell').push(value)
+			db.reference('/TradeDone/'+timestr+'/BuySell').push(value)
 			# delete trade done
 			db.reference('/Trading/BuySell').child(key).set({})
 

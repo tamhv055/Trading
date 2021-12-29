@@ -15,19 +15,15 @@ from Data import Firebase
 from BinanceApi import BinanceTrading
 from Logic import Trading
 import config
-import urllib.request
-import socket
+
 import os
 from LogFile import Writelog
-#from pynput import keyboard
+from pynput import keyboard
 import time
 
-def internet_on():
-    try:
-        urllib.request.urlopen('https://www.binance.com', timeout=1)
-        return True
-    except socket.timeout as err: 
-        return False
+
+
+
 
 """ break_program = False
 def on_press(key):
@@ -40,15 +36,16 @@ def on_press(key):
 
 with keyboard.Listener(on_press=on_press) as listener:
     while break_program == False:
-        print ('program running')
+        Trading.TradeAllTime()
         time.sleep(5)
     listener.join() """
 
+""" def main():
+    
+    wait_for_internet_connection()
+    main() """
 
 Trading.TradeAllTime()
-
-
-
 
 
 #timestr = time.strftime("%d-%m-%Y----%H-%M-%S")33333333333333333333
@@ -91,3 +88,6 @@ print("time a trading work: %s ms" %(endtime-starttime)) """
 
 
 #print(GetData.get_open_price('ETHUSDT',Client.KLINE_INTERVAL_1DAY,5))
+
+
+#https://www.geeksforgeeks.org/python-script-to-monitor-network-connection-and-saving-into-log-file/
