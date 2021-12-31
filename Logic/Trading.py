@@ -47,7 +47,7 @@ feeSellPercent = GetData.get_fee_sell(TRADE_SYMBOL)
 
 
 # Lấy các giá trị cần phân tích
-highpriceinMonth = GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MONTH,1)
+
 
 """ listTrading= Firebase.getListTrading()
 listTradingBuySell = Firebase.getListBuySellTrading()
@@ -182,7 +182,7 @@ def buynewSlow(price,stepjump,listBuySell):
             # Check giá trị ở giữa
             elif firstvalue<price<lastvalue and (price-firstvalue)>=stepjump and (lastvalue-price) >= stepjump:
                
-                for i in range(len(listvalue)):
+                for i in range(len(listvalue)-1):
                     if listvalue[i]< price < listvalue[i+1] and  (listvalue[i+1]-listvalue[i] ) >= (stepjump*2) and (listvalue[i+1]-price) >= 0.9*stepjump and  (price-listvalue[i]) >= 0.9*stepjump : 
                         buy(price,stepjump)
                         return 
@@ -258,7 +258,7 @@ def sellnewSlow(price,stepjump,listSellBuy):
                 return
             #check vị trí giữa
             elif firstvalue > price > lastvalue and (firstvalue-price)>=(0.9*stepjump) and (price-lastvalue) >= (0.9*stepjump) :
-                for i in range(len(listvalue)):
+                for i in range(len(listvalue)-1):
                     if listvalue[i]> price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*2) and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump :
                         sell(price,stepjump)
                         return
@@ -325,27 +325,54 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
     print(StepJump)
     
     safepoint = GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,250)
-    if realtime_priceETH >= safepoint:
-        print("buynewSlow")
-        sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
-        
-        #print("BuySellDone")
-        #BuySellDone(realtime_priceETH,StepJump)
-        
+    safepointMonth = GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300)
+    lowpriceMonth = min(GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
+    highpriceMonth =  max(GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
 
-    elif realtime_priceETH <= safepoint:
-        print("sellnewSlow")
+    pos, neg = GetData.Count_Pos_And_Negg_List(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,101)
+    print("pos:",pos,"Neg:" ,neg)
+    #Nếu giá tăng nhanh
+    if float(pos/(pos+neg)*100) >= 70:
         buynewSlow(realtime_priceETH,StepJump,listBuySell)
-        
-        #print("SellBuyDone")
-        #SellBuyDone(realtime_priceETH,StepJump)
+    #Nếu giá giảm nhanh
+    if float(pos/(pos+neg)*100) <= 30:
+        sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+    #Nếu giá bình thường
+    if  30 < float(pos/(pos+neg)*100) < 70 :
+        print(safepointMonth)
+        print((safepointMonth-realtime_priceETH)/(safepointMonth-lowpriceMonth)*100)
+        print((realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100)
+        if realtime_priceETH < safepointMonth:  
+            if realtime_priceETH >= safepoint and (realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100 >=80:
+                print("SellnewSlow")
+                sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+                
+                #print("BuySellDone")
+                #BuySellDone(realtime_priceETH,StepJump)            
+            else : #realtime_priceETH <= safepoint
+                print("BuynewSlow")
+                buynewSlow(realtime_priceETH,StepJump,listBuySell)
+            
+            #print("SellBuyDone")
+            #SellBuyDone(realtime_priceETH,StepJump)
+        else:
+            
+            if realtime_priceETH <= safepoint and (realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100 >= 80:
+                print("SellnewSlow")
+                sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
 
+            else :#realtime_priceETH >= safepoint
+                print("BuynewSlow")
+                buynewSlow(realtime_priceETH,StepJump,listBuySell)
+                
+                #print("BuySellDone")
+                #BuySellDone(realtime_priceETH,StepJump)            
 
-    print("BuySellDone")
-    BuySellDone(realtime_priceETH,StepJump,listBuySell)
-    print("SellBuyDone")
-    SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
-
+        print("BuySellDone")
+        BuySellDone(realtime_priceETH,StepJump,listBuySell)
+        print("SellBuyDone")
+        SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
+    print(lowpriceMonth,highpriceMonth)
 
 ###########################################################
 

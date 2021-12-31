@@ -1,17 +1,15 @@
 import time
-
-
-timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-print(timestr)
-
+import sys 
 
 
 
 
 def writeDataNow(data):
     timestr = time.strftime("%d-%m-%Y")
-    with open('D:\project Binance\Data\DataBackup'+'\\'+timestr+'.txt','w') as f:
+    with open('D:\project Binance\LogFile\DataBackup'+'\\'+timestr+'.txt','w') as f:
         f.write(str(data))
+
+
 
 
 

@@ -140,14 +140,11 @@ def get_average_price(_symbol,Kline,count):
     return list_average_price
 
 
-
 def Count_Pos_And_Negg_List(_symbol,Kline,count): # 500
     if count > 2:
         Positive = 0
         Negative = 0
         list_average_price = get_average_price(_symbol,Kline,count)
-        
-        print(list_average_price)
         for i in range(len(list_average_price)-1):
             if check_negative(list_average_price[i+1]-list_average_price[i]) == True:
                 Negative = Negative+1

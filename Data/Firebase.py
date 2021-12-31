@@ -4,6 +4,7 @@ from firebase_admin import db
 from firebase_admin import exceptions
 import json
 import time
+import ExportTxt
 
 #https://www.freecodecamp.org/news/how-to-get-started-with-firebase-using-python/
 #https://morioh.com/p/a593f973aff0
@@ -164,7 +165,12 @@ def FindSellMinInListBuySell():
 	key = listkey[listid.index(minSellValue)]
 	return key,minSellValue
 
-
+def backupDataFirebase():
+    try:
+        data = getListTrading()
+        ExportTxt.writeDataNow(data)
+    except:
+        print('Error backup date Firebase')
 
 
 keytest='-MptfwHC75zqVFip8d7J'
