@@ -3,6 +3,8 @@ API_SECRET='ie6ZKHUHVTbFDFUwYtZrozqv79iIOisPJwhKzaE9jC5iKWSpFJFvZE467UlHhXhi'
 
 
 EnableBinanceApi =  False
+Limit_balance_Fiat = 1000
+Limit_balance_Coin = 0.25
 TRADE_SYMBOL = 'ETHBUSD'
 TRADE_QUANTITY = 0.005
 Coin = 'ETH'

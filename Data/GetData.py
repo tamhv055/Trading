@@ -153,9 +153,16 @@ def Count_Pos_And_Negg_List(_symbol,Kline,count): # 500
 
     return Positive,Negative
 
+def get_price_x_time_before(_symbol,Kline,count):
+    try:
+        price =  (get_low_price(_symbol,Kline,count)[0]+get_high_price(_symbol,Kline,count)[0])/2
+    except:
+        print("Error get_price_x_time_before")
+    return price
 
-print(Count_Pos_And_Negg_List('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,101))
+#print(Count_Pos_And_Negg_List('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,101))
 
+print(get_price_x_time_before('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,2))
 
 """ print(recent_price_ETH())
 print(average_price_5mins_ETH())

@@ -5,6 +5,12 @@ from firebase_admin import exceptions
 import json
 import time
 import ExportTxt
+import sys 
+sys.path.insert(1, "D:\project Binance")  
+
+
+import config
+
 
 #https://www.freecodecamp.org/news/how-to-get-started-with-firebase-using-python/
 #https://morioh.com/p/a593f973aff0
@@ -107,6 +113,7 @@ def updateTradingBuySellDoneYet_OnlistTrading(keyTrade,price):
 		for key, value in db.reference('/Trading/BuySell').get().items():
 			if(key==keyTrade):
 				db.reference('/Trading/BuySell').child(keyTrade).update({'Doneyet' : True})
+				
 				db.reference('/Trading/BuySell').child(keyTrade).update({'SellValue' : price})
 	except exceptions as e:
 		print(e)
@@ -172,8 +179,41 @@ def backupDataFirebase():
     except:
         print('Error backup date Firebase')
 
+def getQuantityBuySellwithKey(key):
+	try:
+		Quantity = db.reference('/Trading/BuySell').child(key).get()["Quantity"]
+	except:
+		print("Error getQuantityBuySellwithKey")
+	return Quantity
 
-keytest='-MptfwHC75zqVFip8d7J'
+
+def getQuantitySellBuywithKey(key):
+	try:
+		Quantity = db.reference('/Trading/SellBuy').child(key).get()["Quantity"]
+	except:
+		print("Error getQuantityBuySellwithKey")
+	return Quantity
+
+def check_limit_balance_Coin():
+	listsellbuy = getListSellBuyTrading()
+	totalcoin = sum([listsellbuy[x]['Quantity'] for x in listsellbuy])
+	if totalcoin + config.TRADE_QUANTITY <= config.Limit_balance_Coin:
+		return True
+	else:
+		return False
+	
+def check_limit_balance_Fiat(price):
+	listbuysell = getListBuySellTrading()
+	totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
+	if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
+		return True
+	else:
+		return False
+
+print(check_limit_balance_Fiat(4000))
+keytest='-MsG6ZeazsS9Kezs9AYT'
+
+#print(getQuantityBuySellwithKey(keytest))
 
 #AddnewTrading(datatestTrading)
 #AddnewTrade()

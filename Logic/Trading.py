@@ -20,7 +20,8 @@ import config
 TRADE_SYMBOL = config.TRADE_SYMBOL
 
 TRADE_QUANTITY = config.TRADE_QUANTITY
-
+limitFiat = False
+limitCoin = False
 StepJump = float()
 prevPoint = GetData.average_price_5mins(TRADE_SYMBOL)
 nextPoint = float()
@@ -55,42 +56,47 @@ listTradingSellBuy = Firebase.getListSellBuyTrading() """
 
 ##### trading with no value in list traing 
 def buy(price,_stepjump):
-    #tao lenh mua vô binance, check USDT còn không
-    #BinanceTrading.buyBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
 
-    #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
-    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-    #Thêm dữ liệu lên firebase
-    dataBuy = {
-	        "Time" : timestr ,
-            "BuyValue" : price,
-            "Quantity" : TRADE_QUANTITY,
-            "SellFuture" : (price*(1+feeSellPercent+feeBuyPercent+0.001)+_stepjump) ,
-	        "Doneyet": False
-	}
-    Firebase.AddnewTradingBuySell(dataBuy)
-    global updateData
-    updateData = True
+    if Firebase.check_limit_balance_Fiat(price) == True:
+        #tao lenh mua vô binance, check USDT còn không
+        #BinanceTrading.buyBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
+
+        #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+        timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
+        #Thêm dữ liệu lên firebase
+        dataBuy = {
+                "Time" : timestr ,
+                "BuyValue" : price,
+                "Quantity" : TRADE_QUANTITY,
+                "SellFuture" : (price*(1+feeSellPercent+feeBuyPercent+0.0015)+_stepjump) ,
+                "Doneyet": False
+        }
+        Firebase.AddnewTradingBuySell(dataBuy)
+        global updateData
+        updateData = True
 
 def sell(price,_stepjump):
-    #tao lenh market bán ra binance, check ETH còn không
-    #BinanceTrading.sellBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
-    #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
-    timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
-    #Thêm dữ liệu lên firebase
-    dataSell = {
-	            "Time" : timestr   ,
-                "SellValue" : price,
-                "Quantity" : TRADE_QUANTITY,
-                "BuyFuture" : (price*(1-feeSellPercent-feeBuyPercent-0.001)- _stepjump) ,
-	            "Doneyet": False
-	            }
-    Firebase.AddnewTradingSellBuy(dataSell)
-    global updateData
-    updateData = True
+    if Firebase.check_limit_balance_Coin()==True:
+        #tao lenh market bán ra binance, check ETH còn không
+        #BinanceTrading.sellBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
+        #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+        timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
+        #Thêm dữ liệu lên firebase
+        dataSell = {
+                    "Time" : timestr   ,
+                    "SellValue" : price,
+                    "Quantity" : TRADE_QUANTITY,
+                    "BuyFuture" : (price*(1-feeSellPercent-feeBuyPercent-0.0015)- _stepjump) ,
+                    "Doneyet": False
+                    }
+        Firebase.AddnewTradingSellBuy(dataSell)
+        global updateData
+        updateData = True
 
 def BuySellCoupleDone(_price,keytrade):
-     #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+    
+    Quantity = Firebase.getQuantityBuySellwithKey(keytrade)
+    #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,Quantity)
     timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
     #Thêm dữ liệu lên firebase
     Firebase.updateTradingBuySellDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
@@ -99,7 +105,9 @@ def BuySellCoupleDone(_price,keytrade):
     updateData = True
 
 def SellBuyCoupleDone(_price,keytrade):
-    #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
+    
+    Quantity = Firebase.getQuantitySellBuywithKey(keytrade)
+    #BinanceTrading.buyMarketBinance(TRADE_SYMBOL,Quantity)
     timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
     #Thêm dữ liệu lên firebase
     Firebase.updateTradingSellBuyDoneYet_OnlistTrading(keyTrade=keytrade,price=_price)
@@ -329,48 +337,58 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
     lowpriceMonth = min(GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
     highpriceMonth =  max(GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
 
+    #highyesterday = GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
+    #lowyesterday = GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
+
+    price_before_10minute = GetData.get_price_x_time_before(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,10)
+
+    
+
+    
+
     pos, neg = GetData.Count_Pos_And_Negg_List(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,101)
     print("pos:",pos,"Neg:" ,neg)
     #Nếu giá tăng nhanh
-    if float(pos/(pos+neg)*100) >= 70:
+    if float(pos/(pos+neg)*100) >= 60 and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 and GetData.check_negative((realtime_priceETH-price_before_10minute))==False:
         buynewSlow(realtime_priceETH,StepJump,listBuySell)
     #Nếu giá giảm nhanh
-    if float(pos/(pos+neg)*100) <= 30:
+    if float(pos/(pos+neg)*100) <= 40 and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 and GetData.check_negative((price_before_10minute-realtime_priceETH))==False:
         sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
     #Nếu giá bình thường
-    if  30 < float(pos/(pos+neg)*100) < 70 :
+    if  40 < float(pos/(pos+neg)*100) < 60 :
         print(safepointMonth)
-        print((safepointMonth-realtime_priceETH)/(safepointMonth-lowpriceMonth)*100)
-        print((realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100)
+        
+        
+
         if realtime_priceETH < safepointMonth:  
-            if realtime_priceETH >= safepoint and (realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100 >=80:
-                print("SellnewSlow")
+            if realtime_priceETH >= safepoint and (realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100 >=80 and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2:
+                print('realtime_priceETH < safepointMonth',(realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100)
+                print("SellnewSlow realtime_priceETH < safepoint")
                 sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
                 
                 #print("BuySellDone")
                 #BuySellDone(realtime_priceETH,StepJump)            
             else : #realtime_priceETH <= safepoint
-                print("BuynewSlow")
+                print("BuynewSlow realtime_priceETH < safepoint")
                 buynewSlow(realtime_priceETH,StepJump,listBuySell)
             
             #print("SellBuyDone")
             #SellBuyDone(realtime_priceETH,StepJump)
         else:
             
-            if realtime_priceETH <= safepoint and (realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100 >= 80:
-                print("SellnewSlow")
+            if realtime_priceETH <= safepoint and (realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100 >= 80 and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2:
+                print('realtime_priceETH < safepointMonth',(realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100)
+                print("SellnewSlow realtime_priceETH >= safepoint")
                 sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
 
             else :#realtime_priceETH >= safepoint
-                print("BuynewSlow")
+                print("BuynewSlow realtime_priceETH >= safepoint")
                 buynewSlow(realtime_priceETH,StepJump,listBuySell)
                 
                 #print("BuySellDone")
                 #BuySellDone(realtime_priceETH,StepJump)            
 
-        print("BuySellDone")
         BuySellDone(realtime_priceETH,StepJump,listBuySell)
-        print("SellBuyDone")
         SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
     print(lowpriceMonth,highpriceMonth)
 
@@ -382,11 +400,13 @@ def TradeAllTime():
    
     while True: 
         starttime = round(time.time()*1000)
+       
         if updateData == True :
             #time.sleep(5)
             listTrading= Firebase.getListTrading()
             listBuySell= Firebase.getListBuySellTrading()
             listSellBuy= Firebase.getListSellBuyTrading()
+            
             
             updateData = False
             
