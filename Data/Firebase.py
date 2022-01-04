@@ -54,8 +54,8 @@ ref_tradingBuySell = db.reference('/Trading/BuySell')
 
 
 ref_tradeyet= db.reference('/TradeDone')
-ref_tradeyetSellBuy= db.reference('/TradeDone/SellBuy')
-ref_tradeyetBuySell= db.reference('/TradeDone/BuySell')
+""" ref_tradeyetSellBuy= db.reference('/TradeDone/SellBuy')
+ref_tradeyetBuySell= db.reference('/TradeDone/BuySell') """
 
 
 def AddnewTrading(data):
@@ -147,6 +147,9 @@ def getListBuySellTrading():
 	else:
 		return listTrading
 
+
+
+
 def FindBuyMaxInListBuySell():
 	listBuySell = getListBuySellTrading()
 	#print(listBuySell)
@@ -203,6 +206,7 @@ def check_limit_balance_Coin():
 		return False
 	
 def check_limit_balance_Fiat(price):
+
 	listbuysell = getListBuySellTrading()
 	totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
 	if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
@@ -210,9 +214,38 @@ def check_limit_balance_Fiat(price):
 	else:
 		return False
 
-print(check_limit_balance_Fiat(4000))
-keytest='-MsG6ZeazsS9Kezs9AYT'
 
+
+def Get_list_tradeDoneBuySellAday(timestr):
+	try:
+		listtradeDone = db.reference('/TradeDone/'+timestr+'/BuySell').get()
+	except:
+		print("Error listtradedoneAday")
+	return listtradeDone
+
+
+def Get_list_tradeDoneSellBuyAday(timestr):
+	try:
+		listtradeDone = db.reference('/TradeDone/'+timestr+'/SellBuy').get()
+	except:
+		print("Error listtradedoneAday")
+	return listtradeDone
+
+
+
+def Get_list_tradeDone():
+	try:
+		listtradeDone = ref_tradeyet.get()
+	except:
+		print("Error listtradedone")
+	return listtradeDone
+
+
+
+""" print(Get_list_tradeDoneAday('02-01-2022')) """
+""" print(check_limit_balance_Fiat(4000))
+keytest='-MsG6ZeazsS9Kezs9AYT'
+"""
 #print(getQuantityBuySellwithKey(keytest))
 
 #AddnewTrading(datatestTrading)

@@ -1,3 +1,4 @@
+from os import popen
 from subprocess import Popen
 
 

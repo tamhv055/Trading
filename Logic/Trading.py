@@ -349,11 +349,20 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
     pos, neg = GetData.Count_Pos_And_Negg_List(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,101)
     print("pos:",pos,"Neg:" ,neg)
     #Nếu giá tăng nhanh
-    if float(pos/(pos+neg)*100) >= 60 and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 and GetData.check_negative((realtime_priceETH-price_before_10minute))==False:
+    if (float(pos/(pos+neg)*100) >= 60 
+            and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 
+            and GetData.check_negative((realtime_priceETH-price_before_10minute))==False):
+
         buynewSlow(realtime_priceETH,StepJump,listBuySell)
+
     #Nếu giá giảm nhanh
-    if float(pos/(pos+neg)*100) <= 40 and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 and GetData.check_negative((price_before_10minute-realtime_priceETH))==False:
+    if (float(pos/(pos+neg)*100) <= 40 
+            and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 
+            and GetData.check_negative((price_before_10minute-realtime_priceETH))==False):
+
         sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+
+
     #Nếu giá bình thường
     if  40 < float(pos/(pos+neg)*100) < 60 :
         print(safepointMonth)
@@ -361,29 +370,38 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
         
 
         if realtime_priceETH < safepointMonth:  
-            if realtime_priceETH >= safepoint and (realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100 >=80 and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2:
-                print('realtime_priceETH < safepointMonth',(realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100)
-                print("SellnewSlow realtime_priceETH < safepoint")
+            if (realtime_priceETH >= safepoint 
+                    and (realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100 >=80 # lớn hơn 80% so với giá thấp nhất thì bán
+                    and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 #đang giảm
+                    and GetData.check_negative((price_before_10minute-realtime_priceETH))==False):
+
+                #print('realtime_priceETH < safepointMonth',(realtime_priceETH-lowpriceMonth)/(safepointMonth-lowpriceMonth)*100)
+                #print("SellnewSlow realtime_priceETH < safepoint")
                 sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
                 
                 #print("BuySellDone")
                 #BuySellDone(realtime_priceETH,StepJump)            
             else : #realtime_priceETH <= safepoint
-                print("BuynewSlow realtime_priceETH < safepoint")
+                #print("BuynewSlow realtime_priceETH < safepoint")
                 buynewSlow(realtime_priceETH,StepJump,listBuySell)
             
             #print("SellBuyDone")
             #SellBuyDone(realtime_priceETH,StepJump)
-        else:
+        else: #realtime_priceETH >= safepointMonth
             
-            if realtime_priceETH <= safepoint and (realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100 >= 80 and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2:
+            if (realtime_priceETH <= safepoint 
+                    and (realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100 <= 80 #bé hơn 20% so với giá cao nhất thì mua, 
+                    and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 #đang tăng
+                    and GetData.check_negative((realtime_priceETH-price_before_10minute))==False):
+
                 print('realtime_priceETH < safepointMonth',(realtime_priceETH-safepointMonth)/(highpriceMonth-safepointMonth)*100)
                 print("SellnewSlow realtime_priceETH >= safepoint")
-                sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
+                buynewSlow(realtime_priceETH,StepJump,listBuySell)
+                
 
             else :#realtime_priceETH >= safepoint
                 print("BuynewSlow realtime_priceETH >= safepoint")
-                buynewSlow(realtime_priceETH,StepJump,listBuySell)
+                sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
                 
                 #print("BuySellDone")
                 #BuySellDone(realtime_priceETH,StepJump)            

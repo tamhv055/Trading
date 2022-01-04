@@ -162,7 +162,7 @@ def get_price_x_time_before(_symbol,Kline,count):
 
 #print(Count_Pos_And_Negg_List('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,101))
 
-print(get_price_x_time_before('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,2))
+#print(get_price_x_time_before('ETHUSDT',client.KLINE_INTERVAL_1MINUTE,2))
 
 """ print(recent_price_ETH())
 print(average_price_5mins_ETH())
