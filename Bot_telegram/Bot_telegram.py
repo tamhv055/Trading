@@ -4,13 +4,17 @@ from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.commandhandler import CommandHandler
 from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
-import sys 
+import sys
+
 sys.path.insert(1, "D:\project Binance\CalculatorProfit") 
-sys.path.insert(1, "D:\project Binance\Bot_telegram") 
+sys.path.insert(1, "D:\project Binance\Bot_telegram")
+sys.path.insert(1, "D:\project Binance\Data")
 sys.path.insert(1, "D:\project Binance")
 
-from CalculatorProfit import CalProfit
 
+from CalculatorProfit import CalProfit
+from Data import GetData
+from config import Coin, Usd 
 
 updater = Updater("5020937139:AAGfNblKv-ohgSZCabNrLmNNvopZ_Bpl7qA",
                   use_context=True)
@@ -24,15 +28,17 @@ def start(update: Update, context: CallbackContext):
 def help(update: Update, context: CallbackContext):
     update.message.reply_text("""Available Commands :-
     /youtube - To get the youtube URL
-    /linkedin - To get the LinkedIn profile URL
-    /gmail - To get gmail URL
+    /balance - To get blance
     /totalprofit - To get all profit""")
   
   
-def gmail_url(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        "Your gmail link here (I am not\
-        giving mine one for security reasons)")
+def balance(update: Update, context: CallbackContext):
+    BalanceCoin = GetData.get_balance_Coin_Free(Coin)
+    BalanceUSD = GetData.get_balance_USDT_Free(Usd)
+    reply_text = "Balance of "+ str(Coin) + ": " + str(BalanceCoin)
+    reply_text =reply_text+ "\nBalance of " + str(Usd) + ": " + str(BalanceUSD)
+    
+    update.message.reply_text(reply_text)
   
   
   
@@ -62,7 +68,7 @@ def unknown_text(update: Update, context: CallbackContext):
   
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler('gmail', gmail_url))
+updater.dispatcher.add_handler(CommandHandler('balance', balance))
 updater.dispatcher.add_handler(CommandHandler('TotalProfit', TotalProfit))
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
 updater.dispatcher.add_handler(MessageHandler(

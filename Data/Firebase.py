@@ -198,22 +198,27 @@ def getQuantitySellBuywithKey(key):
 	return Quantity
 
 def check_limit_balance_Coin():
-	listsellbuy = getListSellBuyTrading()
-	totalcoin = sum([listsellbuy[x]['Quantity'] for x in listsellbuy])
-	if totalcoin + config.TRADE_QUANTITY <= config.Limit_balance_Coin:
-		return True
-	else:
-		return False
 	
+	listsellbuy = getListSellBuyTrading()
+	if listsellbuy is not None:
+		totalcoin = sum([ listsellbuy[x]['Quantity'] for x in listsellbuy] )
+		if totalcoin + config.TRADE_QUANTITY <= config.Limit_balance_Coin:
+			return True
+		else:
+			return False
+	else:
+		return True
 def check_limit_balance_Fiat(price):
 
 	listbuysell = getListBuySellTrading()
-	totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
-	if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
-		return True
+	if listbuysell is not None:
+		totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
+		if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
+			return True
+		else:
+			return False
 	else:
-		return False
-
+		return True
 
 
 def Get_list_tradeDoneBuySellAday(timestr):

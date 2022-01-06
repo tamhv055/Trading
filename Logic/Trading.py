@@ -57,7 +57,7 @@ listTradingSellBuy = Firebase.getListSellBuyTrading() """
 ##### trading with no value in list traing 
 def buy(price,_stepjump):
 
-    if Firebase.check_limit_balance_Fiat(price) == True:
+    #if Firebase.check_limit_balance_Fiat(price) == True:
         #tao lenh mua vô binance, check USDT còn không
         #BinanceTrading.buyBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
 
@@ -75,8 +75,9 @@ def buy(price,_stepjump):
         global updateData
         updateData = True
 
+
 def sell(price,_stepjump):
-    if Firebase.check_limit_balance_Coin()==True:
+    #if Firebase.check_limit_balance_Coin()==True:
         #tao lenh market bán ra binance, check ETH còn không
         #BinanceTrading.sellBinance(TRADE_SYMBOL,TRADE_QUANTITY,price)
         #BinanceTrading.sellMarketBinance(TRADE_SYMBOL,TRADE_QUANTITY)
@@ -92,6 +93,7 @@ def sell(price,_stepjump):
         Firebase.AddnewTradingSellBuy(dataSell)
         global updateData
         updateData = True
+
 
 def BuySellCoupleDone(_price,keytrade):
     
@@ -163,7 +165,7 @@ def tradingwithlistNoValue():
 def buynewSlow(price,stepjump,listBuySell):
     while True:
         if price*(feeBuyPercent+feeSellPercent) < stepjump:
-            stepjump = price*(feeBuyPercent+feeSellPercent)
+            stepjump = price*(feeBuyPercent+feeSellPercent+0.00075)
 
         #listBuySell= Firebase.getListBuySellTrading()
         if listBuySell is None:
@@ -206,39 +208,12 @@ def buynewSlow(price,stepjump,listBuySell):
         
         return
             
-def BuySellDone(price,stepjump,listBuySell):
-    while True:
-        #listBuySell= Firebase.getListBuySellTrading()
-        if listBuySell is not None:
-            
-        #listSellBuy is not none
-            # giá giảm nhẹ, mua vào để hoàn thành  
-            listSellFuture = [listBuySell[x]['SellFuture'] for x in listBuySell]
-            #lastvalue =listBuyFuture[range(listBuyFuture)-1]
-
-            #danh sách key on firebase
-            listkey = [x for x in listBuySell]
-            #danh sách thứ tự của key trên firebase 0-123 ...
-            listid = [listBuySell[x]['SellFuture'] for x in listBuySell]
-
-            ## lấy key của giá trị price
-            ## key = listkey[listid.index(value)]
-
-            for value in listSellFuture:
-                if value <= price:
-                    ## lấy key của giá trị value
-                    key = listkey[listid.index(value)]
-
-                    ### hàm mua bán bất đồng bộ ở đây
-                    BuySellCoupleDone(_price=price,keytrade=key)
-            
-        break
-                            
+                           
 def sellnewSlow(price,stepjump,listSellBuy):
     while True:
 
         if price*(feeBuyPercent+feeSellPercent) < stepjump:
-            stepjump = price*(feeBuyPercent+feeSellPercent)
+            stepjump = price*(feeBuyPercent+feeSellPercent+0.00075)
 
         #listSellBuy= Firebase.getListSellBuyTrading()
         if listSellBuy is None:
@@ -296,6 +271,34 @@ def sellnewSlow(price,stepjump,listSellBuy):
                         return """
         return
 
+def BuySellDone(price,stepjump,listBuySell):
+    while True:
+        #listBuySell= Firebase.getListBuySellTrading()
+        if listBuySell is not None:
+            
+        #listSellBuy is not none
+            # giá giảm nhẹ, mua vào để hoàn thành  
+            listSellFuture = [listBuySell[x]['SellFuture'] for x in listBuySell]
+            #lastvalue =listBuyFuture[range(listBuyFuture)-1]
+
+            #danh sách key on firebase
+            listkey = [x for x in listBuySell]
+            #danh sách thứ tự của key trên firebase 0-123 ...
+            listid = [listBuySell[x]['SellFuture'] for x in listBuySell]
+
+            ## lấy key của giá trị price
+            ## key = listkey[listid.index(value)]
+
+            for value in listSellFuture:
+                if value <= price:
+                    ## lấy key của giá trị value
+                    key = listkey[listid.index(value)]
+
+                    ### hàm mua bán bất đồng bộ ở đây
+                    BuySellCoupleDone(_price=price,keytrade=key)
+            
+        break
+
 def SellBuyDone(price,stepjump,listSellBuy):
     while True:
         #listSellBuy= Firebase.getListSellBuyTrading()
@@ -321,7 +324,6 @@ def SellBuyDone(price,stepjump,listSellBuy):
                     SellBuyCoupleDone(_price=price,keytrade=key)
 
                     
-
         break
 
 
@@ -337,34 +339,32 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
     lowpriceMonth = min(GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
     highpriceMonth =  max(GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
 
+    highprice =  GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,1)[0]
+    lowprice = GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,1)[0]
     #highyesterday = GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
     #lowyesterday = GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
 
     price_before_10minute = GetData.get_price_x_time_before(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,10)
 
-    
-
-    
 
     pos, neg = GetData.Count_Pos_And_Negg_List(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,101)
     print("pos:",pos,"Neg:" ,neg)
     #Nếu giá tăng nhanh
-    if (float(pos/(pos+neg)*100) >= 60 
-            and (realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 
-            and GetData.check_negative((realtime_priceETH-price_before_10minute))==False):
+    if (   (float(pos/(pos+neg)*100) >= 60 and (highprice-lowprice)/highprice*100 >= 5)
+            and ((realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 
+            and GetData.check_negative((realtime_priceETH-price_before_10minute))==False)) and lowpriceMonth <= realtime_priceETH <= 80*highpriceMonth/100 :
 
         buynewSlow(realtime_priceETH,StepJump,listBuySell)
 
     #Nếu giá giảm nhanh
-    if (float(pos/(pos+neg)*100) <= 40 
-            and (price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 
-            and GetData.check_negative((price_before_10minute-realtime_priceETH))==False):
-
+    if ((float(pos/(pos+neg)*100) <= 40 and (highprice-lowprice)/highprice*100 >= 5)
+            or ((price_before_10minute-realtime_priceETH)/realtime_priceETH*100 >=1.2 
+            and GetData.check_negative((price_before_10minute-realtime_priceETH))==False)) and (lowpriceMonth+safepointMonth)/2 <= realtime_priceETH <= highpriceMonth:
         sellnewSlow(realtime_priceETH,StepJump,listSellBuy)
 
 
     #Nếu giá bình thường
-    if  40 < float(pos/(pos+neg)*100) < 60 :
+    if  35 < float(pos/(pos+neg)*100) < 65 :
         print(safepointMonth)
         
         
@@ -406,9 +406,12 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
                 #print("BuySellDone")
                 #BuySellDone(realtime_priceETH,StepJump)            
 
+
         BuySellDone(realtime_priceETH,StepJump,listBuySell)
         SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
+
     print(lowpriceMonth,highpriceMonth)
+    print(safepointMonth)
 
 ###########################################################
 

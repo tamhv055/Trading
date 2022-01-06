@@ -28,8 +28,8 @@ import time
 
 
 
-
 Trading.TradeAllTime()
+#Bot_Trading.TradeAllTime()
 
 """ while 1:
     os.system("python 'd:/project Binance/bot1.py'")

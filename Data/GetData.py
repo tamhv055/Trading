@@ -29,12 +29,12 @@ def get_balance(coinsymbol):
     balanceETH= client.get_asset_balance(asset=coinsymbol)
     return float(balanceETH["free"])
 
-def get_balance_ETH_Free():
-    balanceETH= client.get_asset_balance(asset=config.Coin)
+def get_balance_Coin_Free(coin):
+    balanceETH= client.get_asset_balance(asset=coin)
     return float(balanceETH["free"])
 
-def get_balance_USDT_Free():
-    balanceUSDT= client.get_asset_balance(asset=config.Usd)   
+def get_balance_USDT_Free(Usd):
+    balanceUSDT= client.get_asset_balance(asset=Usd)   
     return float((balanceUSDT["free"]))
 
 
