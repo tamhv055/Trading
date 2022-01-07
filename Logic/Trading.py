@@ -28,7 +28,8 @@ nextPoint = float()
 
 buypoint = float()
 sellpoint = float()
-
+limit_coin = config.Limit_balance_Coin
+limit_fiat = config.Limit_balance_Fiat
 updateData = True
 
 listbuy = {}
@@ -177,38 +178,40 @@ def buynewSlow(price,stepjump,listBuySell):
             listvalue = sorted([listBuySell[x]['BuyValue'] for x in listBuySell])
             lastvalue = listvalue[len(listvalue)-1]
             firstvalue = listvalue[0]
+            usedUSD = 0
             print("listbuysell:", listvalue)
-
+            for x in listBuySell:
+                usedUSD = usedUSD +  listBuySell[x]["BuyValue"]*listBuySell[x]["Quantity"]
+            if usedUSD + (price*TRADE_QUANTITY) < limit_fiat:
             # listvalue 1 3 4 5 6 7 9
             # check giá trị cuối cùng của list, nếu phù hợp thì mua
             #Check giá trị đầu tiên để buy
-            if firstvalue > price and (firstvalue-price) >= (0.9*stepjump) :
-                buy(price,stepjump)
-                return 
-            # check giá trị cuối cùng
-            elif lastvalue < price and (price-lastvalue) >= (0.9*stepjump):
-                buy(price,stepjump)
-                return
-            # Check giá trị ở giữa
-            elif firstvalue<price<lastvalue and (price-firstvalue)>=stepjump and (lastvalue-price) >= stepjump:
-               
-                for i in range(len(listvalue)-1):
-                    if listvalue[i]< price < listvalue[i+1] and  (listvalue[i+1]-listvalue[i] ) >= (stepjump*2) and (listvalue[i+1]-price) >= 0.9*stepjump and  (price-listvalue[i]) >= 0.9*stepjump : 
-                        buy(price,stepjump)
-                        return 
-                    else: 
-                        return
-            
-            # and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*2)
-            # and (listvalue[i+1]-price) >= 0.9*stepjump and (listvalue[i]-price) >= 0.9*stepjump 
-            else: 
-                return
+                if firstvalue > price and (firstvalue-price) >= (0.9*stepjump) :
+                    buy(price,stepjump)
+                    return 
+                # check giá trị cuối cùng
+                elif lastvalue < price and (price-lastvalue) >= (0.9*stepjump):
+                    buy(price,stepjump)
+                    return
+                # Check giá trị ở giữa
+                elif firstvalue<price<lastvalue and (price-firstvalue)>=stepjump and (lastvalue-price) >= stepjump:
+                
+                    for i in range(len(listvalue)-1):
+                        if listvalue[i]< price < listvalue[i+1] and  (listvalue[i+1]-listvalue[i] ) >= (stepjump*2) and (listvalue[i+1]-price) >= 0.9*stepjump and  (price-listvalue[i]) >= 0.9*stepjump : 
+                            buy(price,stepjump)
+                            return 
+                        else: 
+                            return
+                
+                # and  ( listvalue[i+1]-listvalue[i] ) >= (stepjump*2)
+                # and (listvalue[i+1]-price) >= 0.9*stepjump and (listvalue[i]-price) >= 0.9*stepjump 
+                else: 
+                    return
             
             
         
         return
-            
-                           
+                              
 def sellnewSlow(price,stepjump,listSellBuy):
     while True:
 
@@ -226,49 +229,49 @@ def sellnewSlow(price,stepjump,listSellBuy):
             lastvalue =listvalue[len(listvalue)-1]
             print("listsellbuy:", listvalue)
             firstvalue = listvalue[0]
+            if ( (len(listSellBuy)+1)*TRADE_QUANTITY) < limit_coin:
+                # listvalue  11 9 5 4 3 2 1
 
-            # listvalue  11 9 5 4 3 2 1
 
-
-             # check giá trị cuối cùng của list, nếu phù hợp thì bán
-             # check vị trí đầu
-            if firstvalue < price and (price-firstvalue) >= (0.9*stepjump) :
-                sell(price,stepjump)
-                return 
-            #check vị trí cuối
-            elif lastvalue > price and (lastvalue-price) >= (0.9*stepjump):
-                sell(price,stepjump)
-                return
-            #check vị trí giữa
-            elif firstvalue > price > lastvalue and (firstvalue-price)>=(0.9*stepjump) and (price-lastvalue) >= (0.9*stepjump) :
-                for i in range(len(listvalue)-1):
-                    if listvalue[i]> price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*2) and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump :
-                        sell(price,stepjump)
-                        return
-                    else:
-                        return
-            
-            else:
-                return
-
-            # and (listvalue[i]-listvalue[i+1]) >= (stepjump*2)
-            # and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump  
-
-            """ for i in range(len(listvalue)):
-                if i == 0:
-                    if price > listvalue[i]: 
-                        if price-listvalue[i] > (0.9*stepjump):
+                # check giá trị cuối cùng của list, nếu phù hợp thì bán
+                # check vị trí đầu
+                if firstvalue < price and (price-firstvalue) >= (0.9*stepjump) :
+                    sell(price,stepjump)
+                    return 
+                #check vị trí cuối
+                elif lastvalue > price and (lastvalue-price) >= (0.9*stepjump):
+                    sell(price,stepjump)
+                    return
+                #check vị trí giữa
+                elif firstvalue > price > lastvalue and (firstvalue-price)>=(0.9*stepjump) and (price-lastvalue) >= (0.9*stepjump) :
+                    for i in range(len(listvalue)-1):
+                        if listvalue[i]> price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*2) and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump :
                             sell(price,stepjump)
                             return
-                elif i == len(listvalue)-1:
-                    if price < listvalue[len(listvalue)-1]:
-                        if listvalue[len(listvalue)-1] - price > (0.9*stepjump):
-                            sell(price,stepjump)
+                        else:
                             return
+                
                 else:
-                    if listvalue[i]> price and price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*1.9) and (listvalue[i]-price) >= 0.9*stepjump or (price-listvalue[i+1])>= 0.9*stepjump :
-                        sell(price,stepjump)
-                        return """
+                    return
+
+                # and (listvalue[i]-listvalue[i+1]) >= (stepjump*2)
+                # and (listvalue[i]-price) >= 0.9*stepjump and (price-listvalue[i+1])>= 0.9*stepjump  
+
+                """ for i in range(len(listvalue)):
+                    if i == 0:
+                        if price > listvalue[i]: 
+                            if price-listvalue[i] > (0.9*stepjump):
+                                sell(price,stepjump)
+                                return
+                    elif i == len(listvalue)-1:
+                        if price < listvalue[len(listvalue)-1]:
+                            if listvalue[len(listvalue)-1] - price > (0.9*stepjump):
+                                sell(price,stepjump)
+                                return
+                    else:
+                        if listvalue[i]> price and price > listvalue[i+1] and (listvalue[i]-listvalue[i+1]) >= (stepjump*1.9) and (listvalue[i]-price) >= 0.9*stepjump or (price-listvalue[i+1])>= 0.9*stepjump :
+                            sell(price,stepjump)
+                            return """
         return
 
 def BuySellDone(price,stepjump,listBuySell):

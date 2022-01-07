@@ -1,37 +1,13 @@
-import os
-import time
+#importing the module 
+import logging 
 
-class RotatingFileOpener():
-    def __init__(self, path, mode='a', prepend="", append=""):
-        if not os.path.isdir(path):
-            raise FileNotFoundError("Can't open directory '{}' for data output.".format(path))
-        self._path = path
-        self._prepend = prepend
-        self._append = append
-        self._mode = mode
-        self._day = time.localtime().tm_mday
-    def __enter__(self):
-        self._filename = self._format_filename()
-        self._file = open(self._filename, self._mode)
-        return self
-    def __exit__(self, *args):
-        return getattr(self._file, '__exit__')(*args)
-    def _day_changed(self):
-        return self._day != time.localtime().tm_mday
-    def _format_filename(self):
-        return os.path.join(self._path, "{}{}{}".format(self._prepend, time.strftime("%Y%m%d"), self._append))
-    def write(self, *args):
-        if self._day_changed():
-            self._file.close()
-            self._file = open(self._format_filename())
-        return getattr(self._file, 'write')(*args)
-    def __getattr__(self, attr):
-        return getattr(self._file, attr)
-    def __iter__(self):
-        return iter(self._file)
+#now we will Create and configure logger 
+logging.basicConfig(filename="std.log", 
+					format='%(asctime)s %(message)s', 
+					filemode='w') 
 
+#Let us Create an object 
+logger=logging.getLogger() 
 
-""" with RotateFileOpener('/var/log/gps', prepend='trading', append='.log') as logger:
-    while True:
-        log = get_gpx_data()
-        logger.write(log) """
+#Now we are going to Set the threshold of logger to DEBUG 
+logger.setLevel(logging.CRITICAL)

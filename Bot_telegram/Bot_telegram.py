@@ -6,15 +6,20 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 import sys
 
+
 sys.path.insert(1, "D:\project Binance\CalculatorProfit") 
 sys.path.insert(1, "D:\project Binance\Bot_telegram")
 sys.path.insert(1, "D:\project Binance\Data")
 sys.path.insert(1, "D:\project Binance")
 
 
+
 from CalculatorProfit import CalProfit
 from Data import GetData
-from config import Coin, Usd 
+from config import Coin, Usd, TRADE_QUANTITY, TRADE_SYMBOL
+from Data import Firebase
+
+
 
 updater = Updater("5020937139:AAGfNblKv-ohgSZCabNrLmNNvopZ_Bpl7qA",
                   use_context=True)
@@ -29,6 +34,7 @@ def help(update: Update, context: CallbackContext):
     update.message.reply_text("""Available Commands :-
     /youtube - To get the youtube URL
     /balance - To get blance
+    /Info_trading -  To get info trading
     /totalprofit - To get all profit""")
   
   
@@ -40,8 +46,25 @@ def balance(update: Update, context: CallbackContext):
     
     update.message.reply_text(reply_text)
   
-  
-  
+def Info_trading(update: Update, context: CallbackContext):
+    string_text= "Info Trading now:\n"
+    listBuySell = Firebase.getListBuySellTrading()
+    listSellBuy = Firebase.getListSellBuyTrading()
+    if listBuySell is not None:
+        countBuySell = len(listBuySell)
+        print(countBuySell)
+        usedUSD = 0
+        for x in listBuySell:
+            usedUSD= usedUSD +  listBuySell[x]["BuyValue"]*listBuySell[x]["Quantity"]
+            
+        string_text = string_text + "List Buy Sell : "+ str(countBuySell) + " Trade use " +  str(round(usedUSD,3)) +" "+ str(Usd) + " \n"
+    
+    if listSellBuy is not None:
+        countSellBuy = len(listSellBuy)
+        string_text = string_text + "List Buy Sell : "+ str(countSellBuy) + " Trade use " +  str(countSellBuy*TRADE_QUANTITY) + " "+ str(Coin) +"\n"
+
+
+    update.message.reply_text(string_text)
   
 def TotalProfit(update: Update, context: CallbackContext):
     stringtext= ""
@@ -70,7 +93,11 @@ updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(CommandHandler('balance', balance))
 updater.dispatcher.add_handler(CommandHandler('TotalProfit', TotalProfit))
+updater.dispatcher.add_handler(CommandHandler('Info_trading', Info_trading))
+
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
+
+
 updater.dispatcher.add_handler(MessageHandler(
     Filters.command, unknown))  # Filters out unknown commands
   
