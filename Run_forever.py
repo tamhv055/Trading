@@ -1,6 +1,10 @@
 from os import popen
 from subprocess import Popen
 
+from Data import Firebase
+
+
+
 
 
 while True:

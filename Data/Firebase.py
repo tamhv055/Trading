@@ -1,3 +1,7 @@
+import sys 
+sys.path.insert(1, "D:\project Binance")  
+sys.path.insert(1, "D:\project Binance\Data") 
+import logging
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
@@ -5,8 +9,8 @@ from firebase_admin import exceptions
 import json
 import time
 import ExportTxt
-import sys 
-sys.path.insert(1, "D:\project Binance")  
+
+import datetime
 
 
 import config
@@ -27,10 +31,12 @@ try:
 	firebase_admin.initialize_app(cred,
 		{'databaseURL':'https://tradedata-2734a-default-rtdb.asia-southeast1.firebasedatabase.app/'}
 		)
-except exceptions as e:
-	print(e)
+except exceptions.FirebaseError as e:
+	logging.error("Firebase error code 32:" + str(e))
+	#print(e)
 else:
-	print("Success connect Firebase")
+	logging.info("Success connect Firebase")
+	#print("Success connect Firebase")
 
 timestr = time.strftime("%d-%m-%Y----%H-%M-%S")
 
@@ -60,41 +66,59 @@ ref_tradeyetBuySell= db.reference('/TradeDone/BuySell') """
 
 def AddnewTrading(data):
 	# thêm log và bắt lỗi except
-	ref_trading.push(data)   
-
+	try:
+		ref_trading.push(data)   
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 69: " + str(e))
+	else:
+		logging.info("Add new Trading"+ str(data))
 
 def AddnewTradingSellBuy(data):
 	# thêm log và bắt lỗi except
-	ref_tradingSellBuy.push(data)
+	try:
+		ref_tradingSellBuy.push(data)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 78: "+str(e))
+	else:
+		logging.info("Add new Trading SellBuy"+ str(data))
 
 
 def AddnewTradingBuySell(data):
 	# thêm log và bắt lỗi except
-	ref_tradingBuySell.push(data)
-
+	try:
+		ref_tradingBuySell.push(data)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 88: "+str(e))
+	else:
+		logging.info("Add new Trading BuySell"+ str(data))
+	
 
 def UpdateTradeSellBuySuccessFull():
-	trading = ref_tradingSellBuy.get()
-	timestr = time.strftime("%d-%m-%Y")
-	for key, value in trading.items():
-		if(value["Doneyet"] == True):
-			# chuyển success trade sang tradedone
-			db.reference('/TradeDone/'+timestr+'/SellBuy').push(value)
-			# delete trade done
-			db.reference('/Trading/SellBuy').child(key).set({})
-
+	try:
+		trading = ref_tradingSellBuy.get()
+		timestr = time.strftime("%d-%m-%Y")
+		for key, value in trading.items():
+			if(value["Doneyet"] == True):
+				# chuyển success trade sang tradedone
+				db.reference('/TradeDone/'+timestr+'/SellBuy').push(value)
+				# delete trade done
+				db.reference('/Trading/SellBuy').child(key).set({})
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 104: "+str(e))
 
 def UpdateTradeBuySellSuccessFull():
-	trading = ref_tradingBuySell.get()
-	timestr = time.strftime("%d-%m-%Y")
+	try:
+		trading = ref_tradingBuySell.get()
+		timestr = time.strftime("%d-%m-%Y")
 
-	for key, value in trading.items():
-		if(value["Doneyet"] == True):
-			# chuyển success trade sang tradedone
-			db.reference('/TradeDone/'+timestr+'/BuySell').push(value)
-			# delete trade done
-			db.reference('/Trading/BuySell').child(key).set({})
-
+		for key, value in trading.items():
+			if(value["Doneyet"] == True):
+				# chuyển success trade sang tradedone
+				db.reference('/TradeDone/'+timestr+'/BuySell').push(value)
+				# delete trade done
+				db.reference('/Trading/BuySell').child(key).set({})
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 118: "+str(e))
 
 def updateTradingSellBuyDoneYet_OnlistTrading(keyTrade,price):
 	try:
@@ -102,10 +126,10 @@ def updateTradingSellBuyDoneYet_OnlistTrading(keyTrade,price):
 			if(key==keyTrade):
 				db.reference('/Trading/SellBuy').child(keyTrade).update({'Doneyet' : True})
 				db.reference('/Trading/SellBuy').child(keyTrade).update({'BuyValue' : price})
-	except exceptions as e:
-		print(e)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 127: "+str(e))
 	else:
-		print('Update Trading SellBuy data')
+		logging.info('Update Trading SellBuy data:\n'+ "KeyTrade: "+ str(keyTrade) +"  price: "+str(price))
 
 
 def updateTradingBuySellDoneYet_OnlistTrading(keyTrade,price):
@@ -115,17 +139,17 @@ def updateTradingBuySellDoneYet_OnlistTrading(keyTrade,price):
 				db.reference('/Trading/BuySell').child(keyTrade).update({'Doneyet' : True})
 				
 				db.reference('/Trading/BuySell').child(keyTrade).update({'SellValue' : price})
-	except exceptions as e:
-		print(e)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 140: " + str(e))
 	else:
-		print('Update Trading BuySell data')
+		logging.info('update Trading BuySell DoneYet_OnlistTrading:\n'+ "KeyTrade: "+ str(keyTrade) +"  price: "+str(price))
 
 
 def getListTrading():
 	try:
 		listTrading = ref_trading.get()
-	except exceptions as e:
-		print(e)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 149: " + str(e))
 	else:
 		return listTrading
 
@@ -133,8 +157,8 @@ def getListTrading():
 def getListSellBuyTrading():
 	try:
 		listTrading = ref_tradingSellBuy.get()
-	except exceptions as e:
-		print(e)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 158: " + str(e))
 	else:
 		return listTrading
 
@@ -142,8 +166,8 @@ def getListSellBuyTrading():
 def getListBuySellTrading():
 	try:
 		listTrading = ref_tradingBuySell.get()
-	except exceptions as e:
-		print(e)
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 167: " + str(e))
 	else:
 		return listTrading
 
@@ -151,89 +175,101 @@ def getListBuySellTrading():
 
 
 def FindBuyMaxInListBuySell():
-	listBuySell = getListBuySellTrading()
-	#print(listBuySell)
-
-	listkey = [x for x in listBuySell]
-	listid = [listBuySell[x]['BuyValue'] for x in listBuySell]
-	#print(listid)
-	maxBuyValue = max(listBuySell[x]['BuyValue'] for x in listBuySell)
-	#print(maxBuyValue)
-	#print(listid.index(maxBuyValue))
-	key = listkey[listid.index(maxBuyValue)]
-	#print(listkey[listid.index(maxBuyValue)])
-	#print(listBuySell[listkey[listid.index(maxBuyValue)]])
+	try:
+		listBuySell = getListBuySellTrading()
+		#print(listBuySell)
+		listkey = [x for x in listBuySell]
+		listid = [listBuySell[x]['BuyValue'] for x in listBuySell]
+		#print(listid)
+		maxBuyValue = max(listBuySell[x]['BuyValue'] for x in listBuySell)
+		#print(maxBuyValue)
+		#print(listid.index(maxBuyValue))
+		key = listkey[listid.index(maxBuyValue)]
+		#print(listkey[listid.index(maxBuyValue)])
+		#print(listBuySell[listkey[listid.index(maxBuyValue)]])
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 188: " + str(e))
 	return key,maxBuyValue
 
 def FindSellMinInListBuySell():
-	listSellBuy = getListSellBuyTrading()
-	#print(listSellBuy)
-	listkey = [x for x in listSellBuy]
-	listid = [listSellBuy[x]['SellValue'] for x in listSellBuy]
+	try:
+		listSellBuy = getListSellBuyTrading()
+		#print(listSellBuy)
+		listkey = [x for x in listSellBuy]
+		listid = [listSellBuy[x]['SellValue'] for x in listSellBuy]
 
-	minSellValue = min(listSellBuy[x]['SellValue'] for x in listSellBuy)
-	key = listkey[listid.index(minSellValue)]
+		minSellValue = min(listSellBuy[x]['SellValue'] for x in listSellBuy)
+		key = listkey[listid.index(minSellValue)]
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 201: " + str(e))
 	return key,minSellValue
 
 def backupDataFirebase():
     try:
         data = getListTrading()
         ExportTxt.writeDataNow(data)
-    except:
-        print('Error backup date Firebase')
+    except exceptions.FirebaseError as e :
+        logging.error("Firebase error code 209: " + str(e))
+	
+
 
 def getQuantityBuySellwithKey(key):
 	try:
 		Quantity = db.reference('/Trading/BuySell').child(key).get()["Quantity"]
-	except:
-		print("Error getQuantityBuySellwithKey")
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 218: " + str(e))	
 	return Quantity
 
 
 def getQuantitySellBuywithKey(key):
 	try:
 		Quantity = db.reference('/Trading/SellBuy').child(key).get()["Quantity"]
-	except:
-		print("Error getQuantityBuySellwithKey")
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 225: " + str(e))
 	return Quantity
 
 def check_limit_balance_Coin():
-	
-	listsellbuy = getListSellBuyTrading()
-	if listsellbuy is not None:
-		totalcoin = sum([ listsellbuy[x]['Quantity'] for x in listsellbuy] )
-		if totalcoin + config.TRADE_QUANTITY <= config.Limit_balance_Coin:
-			return True
+	try:
+		listsellbuy = getListSellBuyTrading()
+		if listsellbuy is not None:
+			totalcoin = sum([ listsellbuy[x]['Quantity'] for x in listsellbuy] )
+			if totalcoin + config.TRADE_QUANTITY <= config.Limit_balance_Coin:
+				return True
+			else:
+				return False
 		else:
-			return False
-	else:
-		return True
-def check_limit_balance_Fiat(price):
+			return True
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 240: " + str(e))
 
-	listbuysell = getListBuySellTrading()
-	if listbuysell is not None:
-		totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
-		if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
-			return True
+def check_limit_balance_Fiat(price):
+	try:
+		listbuysell = getListBuySellTrading()
+		if listbuysell is not None:
+			totalFiat = sum([listbuysell[x]['Quantity']*listbuysell[x]['BuyValue'] for x in listbuysell])
+			if totalFiat + config.TRADE_QUANTITY*price <= config.Limit_balance_Fiat:
+				return True
+			else:
+				return False
 		else:
-			return False
-	else:
-		return True
+			return True
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 254: " + str(e))
 
 
 def Get_list_tradeDoneBuySellAday(timestr):
 	try:
 		listtradeDone = db.reference('/TradeDone/'+timestr+'/BuySell').get()
-	except:
-		print("Error listtradedoneAday")
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 261: " + str(e))
 	return listtradeDone
 
 
 def Get_list_tradeDoneSellBuyAday(timestr):
 	try:
 		listtradeDone = db.reference('/TradeDone/'+timestr+'/SellBuy').get()
-	except:
-		print("Error listtradedoneAday")
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 269: " + str(e))
 	return listtradeDone
 
 
@@ -241,9 +277,23 @@ def Get_list_tradeDoneSellBuyAday(timestr):
 def Get_list_tradeDone():
 	try:
 		listtradeDone = ref_tradeyet.get()
-	except:
-		print("Error listtradedone")
+	except exceptions.FirebaseError as e:
+		logging.error("Firebase error code 278: " + str(e))
 	return listtradeDone
+
+def Auto_delete_TradeDone():
+	listTradeDone = Get_list_tradeDone()
+	listDay = [x for x in listTradeDone]
+	print(listDay)
+	listDay = sorted([datetime.datetime.strptime(dt, "%d-%m-%Y") for dt in listDay])
+	lenlist = len(listDay)
+	if lenlist > 8:
+		listdelete = listDay[:(lenlist-8)]
+		for x in listdelete:
+			print(x.strftime("%d-%m-%Y"))
+			db.reference('/TradeDone').child(x.strftime("%d-%m-%Y")).set({})
+	
+	#db.reference('/TradeDone').child(key).set({})
 
 
 
