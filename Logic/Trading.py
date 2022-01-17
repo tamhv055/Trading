@@ -1,5 +1,7 @@
+from asyncio import sleep
 import logging
 import sys
+from turtle import update
 from types import prepare_class
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data")  
@@ -7,8 +9,9 @@ sys.path.insert(1, "D:\project Binance\BinanceApi")
 from binance.client import Client, BaseClient
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
+from threading import Timer
 
-
+from BinanceApi import BinanceTrading
 from Data import GetData
 from Data import Firebase
 import time
@@ -45,8 +48,8 @@ balanceUSDT = GetData.get_balance_USDT_Free() """
 
 # Lấy giá ETH tại thời điểm hiện tại
 realtime_priceETH = GetData.recent_price_ETH(TRADE_SYMBOL)
-feeBuyPercent= GetData.get_fee_buy(TRADE_SYMBOL)
-feeSellPercent = GetData.get_fee_sell(TRADE_SYMBOL)
+feeBuyPercent= BinanceTrading.get_fee_buy(TRADE_SYMBOL)
+feeSellPercent = BinanceTrading.get_fee_sell(TRADE_SYMBOL)
 
 
 # Lấy các giá trị cần phân tích
@@ -372,27 +375,42 @@ def SellBuyDone(price,stepjump,listSellBuy):
 
 
 def tradingwithlistHasValue(listBuySell,listSellBuy):
+    
     try:
-        realtime_priceETH = GetData.recent_price_ETH(TRADE_SYMBOL)
-        logging.info("realtime price:  "+str(realtime_priceETH))
-        StepJump = GetData.Calculator_Stepjump(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,20)
-        logging.info("stepjump:   " +str(StepJump))
-        
-        safepoint = GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,250)
-        safepointMonth = GetData.CalCulator_safepoint(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300)
-        lowpriceMonth = min(GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
-        highpriceMonth =  max(GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,300))
+        starttime = round(time.time()*1000)
+        #realtime_priceETH = GetData.recent_price_ETH(TRADE_SYMBOL)
+        #---------------------------------------------------------------------------------
+        candles_1minute = GetData.get_candles(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE)
 
-        highprice =  GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,1)[0]
-        lowprice = GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR,1)[0]
+        price_before_10minute = GetData.get_price_x_time_before(candles_1minute,10)
+        pos, neg = GetData.Count_Pos_And_Negg_List(candles_1minute,101)
+        StepJump = GetData.Calculator_Stepjump(candles_1minute,20)
+        safepoint = GetData.CalCulator_safepoint(candles_1minute,250)
+        logging.info("stepjump:   " +str(StepJump))
+
+        #----------------------------------------------------------------------------------
+        candles_8hour =GetData.get_candles(TRADE_SYMBOL,Client.KLINE_INTERVAL_8HOUR) 
+        
+        safepointMonth = GetData.CalCulator_safepoint(candles_8hour,300)
+        lowpriceMonth = min(GetData.get_low_price(candles_8hour,300))
+        highpriceMonth =  max(GetData.get_high_price(candles_8hour,300))
+
+
+        highprice =  GetData.get_high_price(candles_8hour,1)[0]
+        lowprice = GetData.get_low_price(candles_8hour,1)[0]
         #highyesterday = GetData.get_high_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
         #lowyesterday = GetData.get_low_price(TRADE_SYMBOL,Client.KLINE_INTERVAL_1DAY,2)[0]
 
-        price_before_10minute = GetData.get_price_x_time_before(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,10)
+        realtime_priceETH = GetData.recent_price_ETH(TRADE_SYMBOL)
+        logging.info("realtime price:  "+str(realtime_priceETH))
 
-
-        pos, neg = GetData.Count_Pos_And_Negg_List(TRADE_SYMBOL,Client.KLINE_INTERVAL_1MINUTE,101)
+        endtime = round(time.time()*1000)
+        logging.info("time to getdata: %s ms" %(endtime-starttime))
+        
         logging.info("pos:  "+str(pos)+"   "+"Neg:   " +str(neg))
+
+        BuySellDone(realtime_priceETH,StepJump,listBuySell)
+        SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
         #Nếu giá tăng nhanh
         if (   (float(pos/(pos+neg)*100) >= 60 and (highprice-lowprice)/highprice*100 >= 5)
                 and ((realtime_priceETH-price_before_10minute)/price_before_10minute*100 >=1.2 
@@ -441,12 +459,16 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
                     
                     #print("BuySellDone")
                     #BuySellDone(realtime_priceETH,StepJump)            
+        
 
+        
 
-            BuySellDone(realtime_priceETH,StepJump,listBuySell)
-            SellBuyDone(realtime_priceETH,StepJump,listSellBuy)
+        
+        
+
         logging.info("lowpriceMonth,highpriceMonth:     "+ str(lowpriceMonth)+"     " + str(highpriceMonth))
         logging.info("safepointMonth:    " + str(safepointMonth))
+        
     except Exception as e:
         logging.error("Trading error code 457: " + str(e))
         
@@ -454,28 +476,26 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
 
 ###########################################################
 
-def TradeAllTime():
 
+
+def TradeAllTime():
+    
+    #try:
     global updateData
-   
     while True: 
-        logging.info("\n \n \n \n \n A While: ")
+        time.sleep(3)
+        timenow = time.strftime("%d-%m-%Y----%H-%M-%S")
+        logging.info("\n \n \n \n \n A While: "+ str(timenow) )
         starttime = round(time.time()*1000)
-       
+        logging.info("updateData: " + str(updateData))
         if updateData == True :
             #time.sleep(5)
             listTrading= Firebase.getListTrading()
             listBuySell= Firebase.getListBuySellTrading()
             listSellBuy= Firebase.getListSellBuyTrading()
-            
-            
             updateData = False
-            
             logging.info("Run Update listtrading")
 
-        
-        
-        
         if listTrading is None:
             logging.info('Len list trading 0')
             tradingwithlistNoValue()
@@ -487,9 +507,10 @@ def TradeAllTime():
             tradingwithlistHasValue(listBuySell,listSellBuy)
             endtime = round(time.time()*1000)
             logging.info("time a trading work: %s ms" %(endtime-starttime))
-            
             continue
 
+    """ except Exception as e:
+        logging.error("Trading error code 496:" + str(e)) """
 
 
 """ def tradingListBuySellSlow():

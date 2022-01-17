@@ -5,7 +5,7 @@ sys.path.insert(1, "D:\project Binance")
 
 
 from Data import Firebase
-from Data import GetData
+from BinanceApi import BinanceTrading
 import config
 import time
 
@@ -42,8 +42,8 @@ def ProfitAday(timestr,feeSellPercent,feeBuyPercent):
 
 def ProfitAll():
     try:
-        feebuy=GetData.get_fee_buy(config.TRADE_SYMBOL)
-        feesell = GetData.get_fee_sell(config.TRADE_SYMBOL)
+        feebuy=BinanceTrading.get_fee_buy(config.TRADE_SYMBOL)
+        feesell = BinanceTrading.get_fee_sell(config.TRADE_SYMBOL)
         totalprofit = 0
         listProfitDay = []
         listtradone = Firebase.Get_list_tradeDone()

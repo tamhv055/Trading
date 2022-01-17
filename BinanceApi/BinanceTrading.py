@@ -65,8 +65,45 @@ def buyMarketBinance(_symbol,_quantity,_price):
     else:
         logging.info("order buy success:"+"\nQuantity: "+ str(_quantity)+ "  price: " +str(_price)+ "\n" )
         #print('order buy success')
+######################################################
+#                        Getdata                     #
+######################################################
+def get_balance(coinsymbol):
+    try:
+        balanceETH= client.get_asset_balance(asset=coinsymbol)
+    except BinanceAPIException as e:
+        logging.error(" BinanceTrading error code 75: " + str(e))
+    return float(balanceETH["free"])
+
+def get_balance_Coin_Free(coin):
+    try:
+        balanceETH= client.get_asset_balance(asset=coin)
+    except BinanceAPIException as e:
+        logging.error("BinanceTrading error code 82: " + str(e))
+    return float(balanceETH["free"])
+
+def get_balance_USDT_Free(Usd):
+    try:
+        balanceUSDT= client.get_asset_balance(asset=Usd)   
+    except BinanceAPIException as e:
+        logging.error("BinanceTrading error code 89: " + str(e))
+    return float((balanceUSDT["free"]))
 
 
+
+def get_fee_buy(_symbol):
+    try:
+        feeETHUSDT = client.get_trade_fee(symbol=_symbol)
+    except BinanceAPIException as e:
+        logging.error("BinanceTrading error code 98: " + str(e))
+    return float(feeETHUSDT[0]['makerCommission'])
+
+def get_fee_sell(_symbol):
+    try:
+        feeETHUSDT = client.get_trade_fee(symbol=_symbol)
+    except BinanceAPIException as e:
+        logging.error("BinanceTrading error code 105: " + str(e))
+    return float(feeETHUSDT[0]['takerCommission'])
 
 #Hủy lệnh mua bán
 """ try:

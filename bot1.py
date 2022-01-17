@@ -1,8 +1,7 @@
+from asyncio import sleep
 import sys
+import threading
 
-from telegram.bot import Bot
-
-from Bot_telegram.Bot_telegram import UserId
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data")  
 sys.path.insert(1, "D:\project Binance\BinanceApi")
@@ -27,7 +26,9 @@ import time
 
 import logging
 import logging.handlers as handlers
-import Bot_telegram
+from threading import Timer
+from threading import Thread
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -50,18 +51,27 @@ logger.addHandler(logHandler)
 logger.addHandler(errorLogHandler)
 
 
+def autoUpdateFirebase():
+    while True:
+        logging.info("auto Update Delete Firebase")
+        Firebase.Auto_delete_TradeDone()
+        time.sleep(86400)
+    
 
 
 
 try:
-
-    Trading.TradeAllTime()
+    threading.Thread(target=autoUpdateFirebase).start()
+    threading.Thread(target=Trading.TradeAllTime).start()
+    
     
 except Exception as e:
     logger.error("Bot1 error code 58:"+str(e))
-    Bot.send_message(UserId,"Bot1 error code 58:")
-    Bot.send_message(UserId,str(e)[:400])
-finally:
+    """ Bot_telegram.updater.bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
+    Bot_telegram.updater.bot.send_message(chat_id = UserId,text = str(e)[:400]) """
+    #Bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
+    #Bot.send_message(chat_id = UserId,text = str(e)[:400])
+else:
     logger.info("Restart run TradeAllTime")
 
 

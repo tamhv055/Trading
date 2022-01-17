@@ -16,9 +16,10 @@ sys.path.insert(1, "D:\project Binance")
 
 
 from CalculatorProfit import CalProfit
-from Data import GetData
-from config import Coin, Usd, TRADE_QUANTITY, TRADE_SYMBOL
+from BinanceApi import BinanceTrading
+from config import Coin, Usd, TRADE_SYMBOL, TRADE_QUANTITY
 from Data import Firebase
+from Data import GetData
 
 
 
@@ -37,12 +38,13 @@ def help(update: Update, context: CallbackContext):
     update.message.reply_text("""Available Commands :-
     /balance - To get blance
     /Info_trading -  To get info trading
-    /totalprofit - To get all profit""")
+    /totalprofit - To get all profit
+    """)
   
   
 def balance(update: Update, context: CallbackContext):
-    BalanceCoin = GetData.get_balance_Coin_Free(Coin)
-    BalanceUSD = GetData.get_balance_USDT_Free(Usd)
+    BalanceCoin = BinanceTrading.get_balance_Coin_Free(Coin)
+    BalanceUSD = BinanceTrading.get_balance_USDT_Free(Usd)
     reply_text = "Balance of "+ str(Coin) + ": " + str(BalanceCoin)
     reply_text =reply_text+ "\nBalance of " + str(Usd) + ": " + str(BalanceUSD)
     
@@ -107,12 +109,14 @@ updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(CommandHandler('balance', balance))
 updater.dispatcher.add_handler(CommandHandler('TotalProfit', TotalProfit))
 updater.dispatcher.add_handler(CommandHandler('Info_trading', Info_trading))
+#updater.dispatcher.add_handler(CommandHandler('Delete_Trade_Done', Firebase.Auto_delete_TradeDone()))
+
 updater.dispatcher.add_handler(MessageHandler(Filters.text('start'),start))
 updater.dispatcher.add_handler(MessageHandler(Filters.text('help'),help))
 updater.dispatcher.add_handler(MessageHandler(Filters.text('balance'),balance))
 updater.dispatcher.add_handler(MessageHandler(Filters.text('profit'),TotalProfit))
 updater.dispatcher.add_handler(MessageHandler(Filters.text('info trading'),Info_trading))
-
+#updater.dispatcher.add_handler(MessageHandler(Filters.text('Update_Delete_trading'),Firebase.Auto_delete_TradeDone()))
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
 
 

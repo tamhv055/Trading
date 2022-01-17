@@ -1,4 +1,4 @@
-import sys 
+import sys
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data") 
 import logging
@@ -8,10 +8,10 @@ from firebase_admin import db
 from firebase_admin import exceptions
 import json
 import time
-import ExportTxt
 
+import os
 import datetime
-
+import schedule
 
 import config
 
@@ -62,6 +62,26 @@ ref_tradingBuySell = db.reference('/Trading/BuySell')
 ref_tradeyet= db.reference('/TradeDone')
 """ ref_tradeyetSellBuy= db.reference('/TradeDone/SellBuy')
 ref_tradeyetBuySell= db.reference('/TradeDone/BuySell') """
+
+""" def writeDataNow(data,namefile):
+    try:
+		
+        with open("D:\project Binance\LogFile\DataBackup"+"\\"+namefile+".json",'w') as f:
+            f.write(str(data))
+        logging.info("Write back up data date:"+ namefile)
+    except Exception as e:
+        logging.error("Write data error: " + str(e))
+	completeName = os.path.join('D:\project Binance\LogFile\DataBackup', namefile)
+	 """
+
+def writeDataNow(data,namefile):
+	try:
+		completeName = os.path.join('D:\project Binance\LogFile\DataBackup', str(namefile)+".log")
+		with open(completeName,"w") as f:
+			f.write(str(data))
+		logging.info("Write back up data date:"+ namefile)
+	except Exception as e:
+		logging.error("Write data error: " + str(e))
 
 
 def AddnewTrading(data):
@@ -207,7 +227,7 @@ def FindSellMinInListBuySell():
 def backupDataFirebase():
     try:
         data = getListTrading()
-        ExportTxt.writeDataNow(data)
+        writeDataNow(data)
     except exceptions.FirebaseError as e :
         logging.error("Firebase error code 209: " + str(e))
 	
@@ -281,20 +301,36 @@ def Get_list_tradeDone():
 		logging.error("Firebase error code 278: " + str(e))
 	return listtradeDone
 
+def delete_file(filepath):
+	try:
+		if os.path.exists(filepath):
+			os.remove(filepath)
+		else:
+			print("The file does not exist: "+ filepath)
+	except Exception as e:
+		logging.error("Firebase error code in 300: "+str(e))
+
 def Auto_delete_TradeDone():
-	listTradeDone = Get_list_tradeDone()
-	listDay = [x for x in listTradeDone]
-	print(listDay)
-	listDay = sorted([datetime.datetime.strptime(dt, "%d-%m-%Y") for dt in listDay])
-	lenlist = len(listDay)
-	if lenlist > 8:
-		listdelete = listDay[:(lenlist-8)]
-		for x in listdelete:
-			print(x.strftime("%d-%m-%Y"))
-			db.reference('/TradeDone').child(x.strftime("%d-%m-%Y")).set({})
+	try:
+		listTradeDone = Get_list_tradeDone()
+		if listTradeDone is not None:
+			listDay = [x for x in listTradeDone]
+			logging.info(listDay)
+			listDay = sorted([datetime.datetime.strptime(dt, "%d-%m-%Y") for dt in listDay])
+			lenlist = len(listDay)
+			if lenlist > 8:
+				listdelete = listDay[:(lenlist-8)]
+				for x in listdelete:
+					_date_backup = x.strftime("%d-%m-%Y")
+					logging.info("Delete trade done data date: " + _date_backup )
+					DataBackup = db.reference('/TradeDone/'+_date_backup).get()
+					writeDataNow(DataBackup,_date_backup)
+					delete_file("/project Binance/LogFile/info_trading.log." + str(_date_backup)+".log")
+					db.reference('/TradeDone').child(_date_backup).set({})
+	except Exception as e:
+		logging.info("Firebase error code 300: " + str(e)) 
 	
 	#db.reference('/TradeDone').child(key).set({})
-
 
 
 """ print(Get_list_tradeDoneAday('02-01-2022')) """

@@ -1,15 +1,15 @@
-from binance.client import Client,BaseClient
+import binance
 from binance.exceptions import BinanceAPIException
 import logging
 import sys
 sys.path.insert(1, "D:\project Binance") 
 sys.path.insert(1, "D:\project Binance\Data")
-import ExportTxt
+
 import config
 
 
 try:
-    client = Client(config.API_KEY,config.API_SECRET)
+    client = binance.Client()
 except BinanceAPIException as e:
     logging.error("Getdata Binance error code 14: " + str(e))
 else:
@@ -31,42 +31,7 @@ def average_price_5mins(_symbol):
         logging.error("Getdata Binance error code 31: " + str(e))
     return float(avg_price['price'])
 
-def get_balance(coinsymbol):
-    try:
-        balanceETH= client.get_asset_balance(asset=coinsymbol)
-    except BinanceAPIException as e:
-        logging.error("Getdata Binance error code 38: " + str(e))
-    return float(balanceETH["free"])
 
-def get_balance_Coin_Free(coin):
-    try:
-        balanceETH= client.get_asset_balance(asset=coin)
-    except BinanceAPIException as e:
-        logging.error("Getdata Binance error code 45: " + str(e))
-    return float(balanceETH["free"])
-
-def get_balance_USDT_Free(Usd):
-    try:
-        balanceUSDT= client.get_asset_balance(asset=Usd)   
-    except BinanceAPIException as e:
-        logging.error("Getdata Binance error code 52: " + str(e))
-    return float((balanceUSDT["free"]))
-
-
-
-def get_fee_buy(_symbol):
-    try:
-        feeETHUSDT = client.get_trade_fee(symbol=_symbol)
-    except BinanceAPIException as e:
-        logging.error("Getdata Binance error code 61: " + str(e))
-    return float(feeETHUSDT[0]['makerCommission'])
-
-def get_fee_sell(_symbol):
-    try:
-        feeETHUSDT = client.get_trade_fee(symbol=_symbol)
-    except BinanceAPIException as e:
-        logging.error("Getdata Binance error code 68: " + str(e))
-    return float(feeETHUSDT[0]['takerCommission'])
 
 def get_candles(_symbol,KlineTime):
     try:
@@ -75,10 +40,10 @@ def get_candles(_symbol,KlineTime):
         logging.error("Getdata Binance error code 75: " + str(e))
     return candles
 
-def get_open_price(_symbol,KlineTime,count):
+def get_open_price(candles,count):
     try:
         list_open_price=[]
-        candles = client.get_klines(symbol=_symbol, interval=KlineTime)
+        #candles = client.get_klines(symbol=_symbol, interval=KlineTime)
         #candles have 500 element, but we have get "Count" element with Candles[count:]
         #print(candles[count:])
         for x in candles[(0-count):]:
@@ -89,30 +54,30 @@ def get_open_price(_symbol,KlineTime,count):
         logging.error("Getdata Binance error code 89: " + str(e))
     return list_open_price
 
-def get_close_price(_symbol,KlineTime,count):
+def get_close_price(candles,count):
     try:
         list_close_price=[]
-        candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
+        #candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
         for x in candles[(0-count):]:
             list_close_price.append(float(x[4]))
     except BinanceAPIException as e:
         logging.error("Getdata Binance error code 99: " + str(e))
     return list_close_price
 
-def get_high_price(_symbol,KlineTime,count):
+def get_high_price(candles,count):
     try:
         list_high_price=[]
-        candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
+        #candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
         for x in candles[(0-count):]:
             list_high_price.append(float(x[2]))
     except BinanceAPIException as e:
         logging.error("Getdata Binance error code 109: " + str(e))
     return list_high_price
 
-def get_low_price(_symbol,KlineTime,count):
+def get_low_price(candles,count):
     try:
         list_low_price=[]
-        candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
+        #candles = client.get_klines(symbol=_symbol, interval=KlineTime) 
         for x in candles[(0-count):]:
             list_low_price.append(float(x[3]))
     except BinanceAPIException as e:
@@ -127,24 +92,24 @@ def Calculator_Average_Listprice(list_price:list):
         logging.error("Getdata error code 127: " + str(e))
     return float(sum_price/len_list)
 
-def CalCulator_safepoint(_symbol,KlineTime,count):
+def CalCulator_safepoint(candles,count):
     try:
-        list_low = get_low_price(_symbol,KlineTime,count)
+        list_low = get_low_price(candles,count)
         
         Low_Average = Calculator_Average_Listprice(list_low)
         
-        list_high = get_high_price(_symbol,KlineTime,count)
+        list_high = get_high_price(candles,count)
         
         High_Average = Calculator_Average_Listprice(list_high)
     except BinanceAPIException as e:
         logging.error("Getdata Binance error code 140: " + str(e))
     return float((Low_Average+High_Average)/2)
 
-def Calculator_Stepjump(_symbol,KlineTime,count):
+def Calculator_Stepjump(candles,count):
     try:
-        list_low = get_low_price(_symbol,KlineTime,count)
+        list_low = get_low_price(candles,count)
 
-        list_high = get_high_price(_symbol,KlineTime,count)
+        list_high = get_high_price(candles,count)
     except BinanceAPIException as e:
         logging.error("Getdata Binance error code 149: " + str(e))
     return float((sum(list_high)-sum(list_low))/count)
@@ -173,10 +138,10 @@ def check_negative(s):
     except Exception as e:
         logging.error("Getdata error code 174: " + str(e))
 
-def get_average_price(_symbol,Kline,count):
+def get_average_price(candles,count):
     try:
-        list_high_price = get_high_price(_symbol,Kline,count)
-        list_low_price = get_low_price(_symbol,Kline,count)
+        list_high_price = get_high_price(candles,count)
+        list_low_price = get_low_price(candles,count)
         ziplist = zip(list_high_price,list_low_price)
         list_average_price = [(x+y)/2 for (x,y) in ziplist]
     except BinanceAPIException as e:
@@ -184,12 +149,12 @@ def get_average_price(_symbol,Kline,count):
     return list_average_price
 
 
-def Count_Pos_And_Negg_List(_symbol,Kline,count): # 500
+def Count_Pos_And_Negg_List(candles,count): # 500
     try:
         if count > 2:
             Positive = 0
             Negative = 0
-            list_average_price = get_average_price(_symbol,Kline,count)
+            list_average_price = get_average_price(candles,count)
             for i in range(len(list_average_price)-1):
                 if check_negative(list_average_price[i+1]-list_average_price[i]) == True:
                     Negative = Negative+1
@@ -199,9 +164,9 @@ def Count_Pos_And_Negg_List(_symbol,Kline,count): # 500
         logging.error("Getdata Binance error code 199: " + str(e))
     return Positive,Negative
 
-def get_price_x_time_before(_symbol,Kline,count):
+def get_price_x_time_before(candles,count):
     try:
-        price =  (get_low_price(_symbol,Kline,count)[0]+get_high_price(_symbol,Kline,count)[0])/2
+        price =  (get_low_price(candles,count)[0]+get_high_price(candles,count)[0])/2
     except BinanceAPIException as e:
         logging.error("Getdata Binance error code 206: " + str(e))
     return price
