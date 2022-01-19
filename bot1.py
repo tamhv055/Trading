@@ -1,7 +1,6 @@
 from asyncio import sleep
 import sys
 import threading
-
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data")  
 sys.path.insert(1, "D:\project Binance\BinanceApi")
@@ -28,7 +27,7 @@ import logging
 import logging.handlers as handlers
 from threading import Timer
 from threading import Thread
-
+from Bot_telegram import Bot_telegram_v1
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -51,29 +50,44 @@ logger.addHandler(logHandler)
 logger.addHandler(errorLogHandler)
 
 
+
 def autoUpdateFirebase():
     while True:
         logging.info("auto Update Delete Firebase")
         Firebase.Auto_delete_TradeDone()
         time.sleep(86400)
-    
+
+def telegram_bot_start():
+    try:
+        Bot_telegram_v1.start_bot_telegram()
+        Bot_telegram_v1.mybot.Send_message("Bot telegram restart!")
+        
+    except Exception as e:
+        Bot_telegram_v1.mybot.stop_bot()
+        logging.error("Bot1 Error code 67: "+ str(e))
+        
 
 
+def main():
+    try:
+        threading.Thread(target=telegram_bot_start).start()
+        threading.Thread(target=autoUpdateFirebase).start()
+        threading.Thread(target=Trading.TradeAllTime).start()
+        #threading.Thread(target=bot_telegram_send).start()
+        
+        
+    except Exception as e:
+        logger.error("Bot1 error code 81:"+str(e))
+        Bot_telegram_v1.mybot.Send_message("Bot1 Error code 82: "+ str(e)[:400])
+        """ Bot_telegram.updater.bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
+        Bot_telegram.updater.bot.send_message(chat_id = UserId,text = str(e)[:400]) """
+        #Bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
+        #Bot.send_message(chat_id = UserId,text = str(e)[:400])
+    else:
+        logger.info("Restart run TradeAllTime")
 
-try:
-    threading.Thread(target=autoUpdateFirebase).start()
-    threading.Thread(target=Trading.TradeAllTime).start()
-    
-    
-except Exception as e:
-    logger.error("Bot1 error code 58:"+str(e))
-    """ Bot_telegram.updater.bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
-    Bot_telegram.updater.bot.send_message(chat_id = UserId,text = str(e)[:400]) """
-    #Bot.send_message(chat_id = UserId,text = "Bot1 error code 62: ")
-    #Bot.send_message(chat_id = UserId,text = str(e)[:400])
-else:
-    logger.info("Restart run TradeAllTime")
-
+if __name__ == "__main__":
+    main()
 
 #Bot_Trading.TradeAllTime()
 

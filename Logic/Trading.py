@@ -1,22 +1,28 @@
 from asyncio import sleep
 import logging
-import sys
+
 from turtle import update
 from types import prepare_class
+
+import sys
 sys.path.insert(1, "D:\project Binance")  
 sys.path.insert(1, "D:\project Binance\Data")  
 sys.path.insert(1, "D:\project Binance\BinanceApi")
+sys.path.insert(1, "D:\project Binance\Bot_telegram")
+sys.path.insert(1, "D:\project Binance\Logic")
 from binance.client import Client, BaseClient
 from binance.enums import *
 from binance.exceptions import BinanceAPIException
 from threading import Timer
 
+
+#from Bot_telegram import Bot_telegram
 from BinanceApi import BinanceTrading
 from Data import GetData
 from Data import Firebase
 import time
 import config
-
+from Bot_telegram import Bot_telegram_v1
 
 
 
@@ -470,6 +476,8 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
         logging.info("safepointMonth:    " + str(safepointMonth))
         
     except Exception as e:
+        #Bot_telegram.bot_telegram_send("Trading error code 457: " + str(e))
+        #Bot_telegram.updater.dispatcher.bot.send_message("1686353548","Trading error code 457: ")
         logging.error("Trading error code 457: " + str(e))
         
     
@@ -478,39 +486,44 @@ def tradingwithlistHasValue(listBuySell,listSellBuy):
 
 
 
+
 def TradeAllTime():
     
-    #try:
-    global updateData
-    while True: 
-        time.sleep(3)
-        timenow = time.strftime("%d-%m-%Y----%H-%M-%S")
-        logging.info("\n \n \n \n \n A While: "+ str(timenow) )
-        starttime = round(time.time()*1000)
-        logging.info("updateData: " + str(updateData))
-        if updateData == True :
-            #time.sleep(5)
-            listTrading= Firebase.getListTrading()
-            listBuySell= Firebase.getListBuySellTrading()
-            listSellBuy= Firebase.getListSellBuyTrading()
-            updateData = False
-            logging.info("Run Update listtrading")
+    try:
+        global updateData
+        while True: 
+            time.sleep(1)
+            timenow = time.strftime("%d-%m-%Y----%H-%M-%S")
+            logging.info("\n \n \n \n \n A While: "+ str(timenow) )
+            starttime = round(time.time()*1000)
+            logging.info("updateData: " + str(updateData))
+            if updateData == True :
+                #time.sleep(5)
+                listTrading= Firebase.getListTrading()
+                listBuySell= Firebase.getListBuySellTrading()
+                listSellBuy= Firebase.getListSellBuyTrading()
+                updateData = False
+                logging.info("Run Update listtrading")
 
-        if listTrading is None:
-            logging.info('Len list trading 0')
-            tradingwithlistNoValue()
-            endtime = round(time.time()*1000)
-            logging.info("time a trading work: %s ms" %(endtime-starttime))
-            continue
-            
-        else:
-            tradingwithlistHasValue(listBuySell,listSellBuy)
-            endtime = round(time.time()*1000)
-            logging.info("time a trading work: %s ms" %(endtime-starttime))
-            continue
+            if listTrading is None:
+                logging.info('Len list trading 0')
+                tradingwithlistNoValue()
+                endtime = round(time.time()*1000)
+                logging.info("time a trading work: %s ms" %(endtime-starttime))
+                continue
+                
+            else:
+                tradingwithlistHasValue(listBuySell,listSellBuy)
+                endtime = round(time.time()*1000)
+                logging.info("time a trading work: %s ms" %(endtime-starttime))
+                continue
 
-    """ except Exception as e:
-        logging.error("Trading error code 496:" + str(e)) """
+    except Exception as e:
+        Bot_telegram_v1.mybot.Send_message("Trading All time Error code 522: "+ str(e))
+        logging.error("Trading error code 523:" + str(e)) 
+        
+        
+
 
 
 """ def tradingListBuySellSlow():
