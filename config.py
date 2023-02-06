@@ -1,5 +1,5 @@
-API_KEY='c9GBPlueMjR9lKoDimcgkMhPP7WeLF8zgHMkQZms7nbXR5amXv4VlqWWokjKXzuq'
-API_SECRET='ie6ZKHUHVTbFDFUwYtZrozqv79iIOisPJwhKzaE9jC5iKWSpFJFvZE467UlHhXhi'
+API_KEY='API_binance_key'
+API_SECRET='API_binance_SECRET'
 
 
 EnableBinanceApi =  False
@@ -10,5 +10,5 @@ TRADE_QUANTITY = 0.005
 Coin = 'ETH'
 Usd = 'BUSD'
 
-telegramBot_Token ="5020937139:AAGfNblKv-ohgSZCabNrLmNNvopZ_Bpl7qA"
-UserId_telegram = "1686353548"
+telegramBot_Token ="telegram_bot_token"
+UserId_telegram = "User_ID"
