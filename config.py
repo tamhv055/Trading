@@ -1,5 +1,5 @@
-API_KEY='API_binance_key'
-API_SECRET='API_binance_SECRET'
+API_KEY='insert API binance key in here'
+API_SECRET='insert API binance SECRET in here'
 
 
 EnableBinanceApi =  False
